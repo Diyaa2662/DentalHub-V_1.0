@@ -1,0 +1,13 @@
+{
+  "header": {
+    "home": "Hem",
+    "products": "Produkter",
+    "cart": "Kundvagn",
+    "login": "Logga in"
+  },
+  "buttons": {
+    "add_to_cart": "Lägg i kundvagn",
+    "buy_now": "Köp nu",
+    "view_details": "Visa detaljer"
+  }
+}
