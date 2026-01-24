@@ -1,10 +1,16 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'dental-blue': '#2563EB',
+        'dental-teal': '#0D9488',
+      },
+    },
   },
   plugins: [],
-}
+};
