@@ -119,6 +119,8 @@ const Register = () => {
     return true;
   };
 
+  // src/pages/Register.jsx - التعديلات المطلوبة في handleSubmit
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -136,25 +138,31 @@ const Register = () => {
 
       console.log("✅ Registration response:", response.data);
 
-      if (response.data && response.data.user && response.data.token) {
-        // حفظ بيانات المستخدم في localStorage
-        const userData = response.data.user;
-        const token = response.data.token;
-
-        localStorage.setItem("customerToken", token);
-        localStorage.setItem("customerData", JSON.stringify(userData));
-
-        sessionStorage.setItem("customerToken", token);
-        sessionStorage.setItem("customerData", JSON.stringify(userData));
-
-        console.log("💾 New customer registered:", userData);
+      // التعديل: فقط نتحقق من أن الاستجابة تحتوي على رسالة نجاح
+      if (response.data && response.data.message) {
+        console.log("💾 Registration successful");
 
         setSuccess(true);
 
-        // توجيه المستخدم بعد 3 ثواني
+        // تنظيف النموذج بعد النجاح (اختياري)
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          password_confirmation: "",
+          phone: "",
+          address: "",
+        });
+
+        // توجيه المستخدم لصفحة تسجيل الدخول بعد 3 ثواني
         setTimeout(() => {
-          navigate("/");
-          window.location.reload();
+          navigate("/login", {
+            state: {
+              email: formData.email,
+              registrationSuccess: true,
+              message: response.data.message,
+            },
+          });
         }, 3000);
       } else {
         setError(t("auth:registrationFailed"));
@@ -164,12 +172,10 @@ const Register = () => {
 
       if (err.response) {
         if (err.response.status === 422) {
-          // خطأ في التحقق من البيانات
           const errors = err.response.data.errors;
           const firstError = Object.values(errors)[0]?.[0];
           setError(firstError || t("auth:validationError"));
         } else if (err.response.status === 409) {
-          // البريد الإلكتروني موجود مسبقاً
           setError(t("auth:emailExists"));
         } else {
           setError(err.response.data?.message || t("auth:serverError"));
@@ -313,7 +319,14 @@ const Register = () => {
                           {t("auth:registrationSuccess")}
                         </h3>
                         <p className="text-sm text-green-700 mt-1">
-                          {t("auth:redirectMessage")}
+                          ✅ {t("auth:accountCreated")}
+                        </p>
+                        <p className="text-sm text-green-600 mt-1">
+                          {t("auth:redirectingToLogin")}
+                        </p>
+                        <p className="text-xs text-green-500 mt-2">
+                          <FaEnvelope className="inline mr-1" />
+                          {t("auth:emailVerificationSent")}
                         </p>
                       </div>
                     </div>

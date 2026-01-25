@@ -771,7 +771,7 @@ const Products = () => {
       </div>
 
       {/* CSS للأنيميشن */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInDown {
           from {
             opacity: 0;

@@ -494,7 +494,6 @@ const ProductDetails = () => {
                     </button>
 
                     <input
-                      type="number"
                       min="1"
                       value={quantity}
                       onChange={(e) => {
@@ -564,7 +563,7 @@ const ProductDetails = () => {
       </div>
 
       {/* CSS للأنيميشن */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInDown {
           from {
             opacity: 0;

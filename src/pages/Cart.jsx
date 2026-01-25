@@ -131,9 +131,47 @@ const Cart = () => {
 
     setUpdatingQuantity((prev) => ({ ...prev, [productId]: true }));
 
-    // دالة مساعدة للإضافة
-    const addProductToCart = async () => {
-      return await api.post(
+    try {
+      console.log(
+        `🔄 Updating quantity for product ${productId} to ${newQuantity}`,
+      );
+
+      // نجد الـ order_id من بيانات السلة
+      const orderId = cartData?.order?.id;
+      if (!orderId) {
+        showNotification(t("common:orderNotFound"), "error");
+        return;
+      }
+
+      // أولاً: حذف المنتج من السلة
+      console.log(
+        `🗑️ Removing product ${productId} from order ${orderId} first`,
+      );
+
+      const removeResponse = await api.post(
+        `/removeitemfromorder/${orderId}`,
+        {
+          product_id: productId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("✅ Product removed:", removeResponse.data);
+
+      // انتظر قليلاً قبل الإضافة الجديدة
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // ثانياً: إضافة المنتج بالكمية الجديدة
+      console.log(
+        `➕ Adding product ${productId} with new quantity ${newQuantity}`,
+      );
+
+      const addResponse = await api.post(
         "/additemtoorder",
         {
           product_id: productId,
@@ -146,94 +184,24 @@ const Cart = () => {
           },
         },
       );
-    };
 
-    // دالة مساعدة للحذف
-    const removeProductFromCart = async () => {
-      const orderId = cartData?.order?.id;
-      if (!orderId) {
-        throw new Error(t("common:orderNotFound"));
-      }
+      console.log("✅ Product added with new quantity:", addResponse.data);
 
-      return await api.post(
-        `/removeitemfromorder/${orderId}`,
-        {
-          product_id: productId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-    };
+      if (addResponse.data && addResponse.data.message) {
+        showNotification(
+          addResponse.data.message || t("cart:quantityUpdated"),
+          "success",
+        );
 
-    try {
-      console.log(
-        `🔄 Updating quantity for product ${productId} to ${newQuantity}`,
-      );
+        // إعادة جلب بيانات السلة المحدثة
+        fetchCartData();
 
-      // المحاولة الأولى: إضافة مباشرة
-      try {
-        const response = await addProductToCart();
-        console.log("✅ Quantity updated:", response.data);
-
-        if (response.data && response.data.message) {
-          showNotification(
-            response.data.message || t("cart:quantityUpdated"),
-            "success",
-          );
-          fetchCartData();
-          setTempQuantities((prev) => {
-            const newState = { ...prev };
-            delete newState[productId];
-            return newState;
-          });
-          return;
-        }
-      } catch (firstError) {
-        // إذا كان الخطأ بسبب وجود المنتج مسبقاً
-        const errorMessage =
-          firstError.response?.data?.message?.toLowerCase() || "";
-        const isDuplicateError =
-          errorMessage.includes("already") ||
-          errorMessage.includes("exists") ||
-          errorMessage.includes("موجود") ||
-          errorMessage.includes("مسبقاً") ||
-          firstError.response?.status === 409; // Conflict
-
-        if (isDuplicateError) {
-          console.log("⚠️ Product exists, removing first...");
-
-          // المحاولة الثانية: حذف ثم إضافة
-          try {
-            await removeProductFromCart();
-            await new Promise((resolve) => setTimeout(resolve, 300)); // انتظار قصير
-
-            const retryResponse = await addProductToCart();
-            console.log(
-              "✅ Quantity updated after removal:",
-              retryResponse.data,
-            );
-
-            showNotification(t("cart:quantityUpdated"), "success");
-            fetchCartData();
-
-            setTempQuantities((prev) => {
-              const newState = { ...prev };
-              delete newState[productId];
-              return newState;
-            });
-            return;
-          } catch (retryError) {
-            console.error("❌ Retry failed:", retryError);
-            throw retryError;
-          }
-        } else {
-          // خطأ آخر غير ازدواجية المنتج
-          throw firstError;
-        }
+        // حذف الكمية المؤقتة بعد الحفظ
+        setTempQuantities((prev) => {
+          const newState = { ...prev };
+          delete newState[productId];
+          return newState;
+        });
       }
     } catch (err) {
       console.error("❌ Error updating quantity:", err);
@@ -242,6 +210,41 @@ const Cart = () => {
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
         navigate("/login");
+      } else if (err.response?.status === 404) {
+        // إذا فشل الحذف، نحاول الإضافة مباشرة
+        try {
+          console.log("⚠️ Remove failed, trying direct addition");
+
+          const addResponse = await api.post(
+            "/additemtoorder",
+            {
+              product_id: productId,
+              quantity: newQuantity,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
+          console.log("✅ Direct addition successful:", addResponse.data);
+          showNotification(t("cart:quantityUpdated"), "success");
+          fetchCartData();
+
+          setTempQuantities((prev) => {
+            const newState = { ...prev };
+            delete newState[productId];
+            return newState;
+          });
+        } catch (addErr) {
+          console.error("❌ Direct addition also failed:", addErr);
+          showNotification(
+            addErr.response?.data?.message || t("cart:updateError"),
+            "error",
+          );
+        }
       } else {
         showNotification(
           err.response?.data?.message || t("cart:updateError"),
@@ -979,7 +982,7 @@ const Cart = () => {
       </div>
 
       {/* CSS للأنيميشن */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInDown {
           from {
             opacity: 0;
