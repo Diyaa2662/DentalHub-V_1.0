@@ -1,0 +1,53 @@
+/* أنيميشن للزر */
+@keyframes bounce-light {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-bounce-light {
+  animation: bounce-light 2s infinite;
+}
+
+/* تحسين الأداء للأنيميشن */
+.transition-all {
+  will-change: transform, opacity;
+}
+
+/* منع الاهتزاز عند السكرول */
+html {
+  scroll-behavior: smooth;
+}
+
+/* تحسين المظهر على الشاشات الصغيرة */
+@media (max-width: 768px) {
+  /* سرعة أبطأ قليلاً للأنيميشن على الهواتف */
+  .transition-all {
+    transition-duration: 350ms;
+  }
+
+  /* جعل الزر أصغر قليلاً على الهواتف */
+  .fixed.right-4.bottom-4 {
+    right: 16px;
+    bottom: 16px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* زر أصغر للشاشات الصغيرة جداً */
+  .fixed.right-4.bottom-4 {
+    right: 12px;
+    bottom: 12px;
+    padding: 10px;
+  }
+
+  .fixed.right-4.bottom-4 svg {
+    height: 18px;
+    width: 18px;
+  }
+}
