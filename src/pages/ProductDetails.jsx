@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة المختصرة والمبسطة
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع إضافة للسلة
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaTag,
+  FaExclamationTriangle,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const ProductDetails = () => {
@@ -21,6 +23,14 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
+
+  // حالة للتنبيهات
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success", // success, error, info
+  });
 
   useEffect(() => {
     fetchProductDetails();
@@ -37,6 +47,131 @@ const ProductDetails = () => {
       console.error("Error fetching product details:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // دالة لإظهار التنبيه
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      show: true,
+      message,
+      type,
+    });
+
+    // إخفاء التنبيه بعد 3 ثواني
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "success",
+      });
+    }, 3000);
+  };
+
+  // وظيفة إضافة منتج للسلة
+  const handleAddToCart = async () => {
+    // التحقق من تسجيل الدخول
+    const token = localStorage.getItem("customerToken");
+    if (!token) {
+      showNotification(
+        i18n.language === "sv"
+          ? "Vänligen logga in för att lägga till produkter i varukorgen"
+          : "Please login to add items to cart",
+        "error",
+      );
+
+      return;
+    }
+
+    setAddingToCart(true);
+
+    try {
+      console.log(
+        `🛒 Adding product ${id} to cart with quantity ${quantity}...`,
+      );
+
+      const response = await api.post(
+        "/additemtoorder",
+        {
+          product_id: parseInt(id),
+          quantity: parseInt(quantity),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("✅ Product added to cart:", response.data);
+
+      if (response.data && response.data.message) {
+        showNotification(
+          response.data.message ||
+            (i18n.language === "sv"
+              ? `${quantity} ${quantity === 1 ? "produkt" : "produkter"} har lagts till i varukorgen`
+              : `${quantity} ${quantity === 1 ? "item" : "items"} added to cart successfully`),
+          "success",
+        );
+      } else {
+        showNotification(
+          i18n.language === "sv"
+            ? `${quantity} ${quantity === 1 ? "produkt" : "produkter"} har lagts till i varukorgen`
+            : `${quantity} ${quantity === 1 ? "item" : "items"} added to cart successfully`,
+          "success",
+        );
+      }
+
+      // إعادة تعيين الكمية بعد الإضافة الناجحة
+      setQuantity(1);
+    } catch (err) {
+      console.error("❌ Error adding to cart:", err);
+
+      let errorMessage = "";
+
+      if (err.response?.status === 401) {
+        // التوكن غير صالح
+        localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerData");
+        errorMessage =
+          i18n.language === "sv"
+            ? "Din session har gått ut. Var vänlig logga in igen"
+            : "Your session has expired. Please login again";
+
+        showNotification(errorMessage, "error");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
+      } else if (err.response?.status === 422) {
+        // خطأ في التحقق
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0]?.[0];
+        errorMessage =
+          firstError ||
+          (i18n.language === "sv"
+            ? "Ogiltig produktdata eller kvantitet"
+            : "Invalid product data or quantity");
+        showNotification(errorMessage, "error");
+      } else if (err.response?.status === 400) {
+        // خطأ في الطلب
+        errorMessage =
+          err.response.data?.message ||
+          (i18n.language === "sv"
+            ? "Kunde inte lägga till produkten i varukorgen"
+            : "Could not add product to cart");
+        showNotification(errorMessage, "error");
+      } else {
+        errorMessage =
+          err.response?.data?.message ||
+          (i18n.language === "sv"
+            ? "Ett fel uppstod när produkten skulle läggas till i varukorgen"
+            : "An error occurred while adding product to cart");
+        showNotification(errorMessage, "error");
+      }
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -83,11 +218,6 @@ const ProductDetails = () => {
         prev === 0 ? product.images.length - 1 : prev - 1,
       );
     }
-  };
-
-  // إضافة للسلة
-  const handleAddToCart = () => {
-    alert(t("product:addedToCart"));
   };
 
   if (loading) {
@@ -158,6 +288,36 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* تنبيهات */}
+      {notification.show && (
+        <div
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
+        >
+          <div className="flex items-start">
+            <div
+              className={`flex-shrink-0 ${
+                notification.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <FaCheckCircle className="text-lg" />
+              ) : (
+                <FaExclamationTriangle className="text-lg" />
+              )}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* شريط التنقل */}
       <div className="bg-white border-b border-gray-200 py-3">
         <div className="container mx-auto px-4">
@@ -294,7 +454,7 @@ const ProductDetails = () => {
                       ${price.toFixed(2)}
                     </span>
                     <span className="ml-4 bg-red-100 text-red-600 font-bold px-3 py-1 rounded-full">
-                      Save ${(price - discountPrice).toFixed(2)}
+                      {t("product:save")} ${(price - discountPrice).toFixed(2)}
                     </span>
                   </>
                 )}
@@ -350,6 +510,11 @@ const ProductDetails = () => {
                     >
                       <span className="text-xl">+</span>
                     </button>
+
+                    <span className="text-gray-600 ml-2">
+                      {quantity}{" "}
+                      {quantity === 1 ? t("common:piece") : t("common:pieces")}
+                    </span>
                   </div>
                 </div>
 
@@ -357,10 +522,28 @@ const ProductDetails = () => {
                 <div>
                   <button
                     onClick={handleAddToCart}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center"
+                    disabled={addingToCart}
+                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center ${
+                      addingToCart
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                    }`}
                   >
-                    <FaShoppingCart className="mr-3" />
-                    {t("common:addToCart")}
+                    {addingToCart ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-3"></div>
+                        {t("common:addingToCart")}
+                      </>
+                    ) : (
+                      <>
+                        <FaShoppingCart className="mr-3" />
+                        {t("common:addToCart")} ({quantity}{" "}
+                        {quantity === 1
+                          ? t("common:piece")
+                          : t("common:pieces")}
+                        )
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -379,6 +562,24 @@ const ProductDetails = () => {
           </button>
         </div>
       </div>
+
+      {/* CSS للأنيميشن */}
+      <style jsx>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

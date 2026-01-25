@@ -1,7 +1,7 @@
-// src/pages/Products.jsx - النسخة المعدلة مع تصحيح هيكلية الفلترة
+// src/pages/Products.jsx - النسخة المعدلة مع إضافة للسلة
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   FaStar,
@@ -11,13 +11,23 @@ import {
   FaChevronRight,
   FaTag,
   FaTimes,
+  FaExclamationTriangle,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const Products = () => {
   const { t, i18n } = useTranslation(["common", "product"]);
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // حالة للتنبيهات
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success", // success, error, info
+  });
 
   // حالة للتصفية
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -29,6 +39,9 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // حالة لإضافة المنتجات للسلة
+  const [addingToCart, setAddingToCart] = useState({});
 
   useEffect(() => {
     fetchProducts();
@@ -95,6 +108,119 @@ const Products = () => {
     } catch (err) {
       console.error("❌ Error fetching categories:", err);
       setCategories([]);
+    }
+  };
+
+  // دالة لإظهار التنبيه
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      show: true,
+      message,
+      type,
+    });
+
+    // إخفاء التنبيه بعد 3 ثواني
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "success",
+      });
+    }, 3000);
+  };
+
+  // وظيفة إضافة منتج للسلة
+  const handleAddToCart = async (productId, productName) => {
+    // التحقق من تسجيل الدخول
+    const token = localStorage.getItem("customerToken");
+    if (!token) {
+      showNotification(
+        i18n.language === "sv"
+          ? "Vänligen logga in för att lägga till produkter i varukorgen"
+          : "Please login to add items to cart",
+        "error",
+      );
+      return;
+    }
+
+    // تحديث حالة الإضافة لهذا المنتج
+    setAddingToCart((prev) => ({ ...prev, [productId]: true }));
+
+    try {
+      console.log(`🛒 Adding product ${productId} to cart...`);
+
+      const response = await api.post(
+        "/additemtoorder",
+        {
+          product_id: productId,
+          quantity: 1, // الكمية الافتراضية
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("✅ Product added to cart:", response.data);
+
+      if (response.data && response.data.message) {
+        showNotification(
+          response.data.message ||
+            (i18n.language === "sv"
+              ? `${productName} har lagts till i varukorgen`
+              : `${productName} added to cart successfully`),
+          "success",
+        );
+      } else {
+        showNotification(
+          i18n.language === "sv"
+            ? `${productName} har lagts till i varukorgen`
+            : `${productName} added to cart successfully`,
+          "success",
+        );
+      }
+    } catch (err) {
+      console.error("❌ Error adding to cart:", err);
+
+      let errorMessage = "";
+
+      if (err.response?.status === 401) {
+        // التوكن غير صالح
+        localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerData");
+        errorMessage =
+          i18n.language === "sv"
+            ? "Din session har gått ut. Var vänlig logga in igen"
+            : "Your session has expired. Please login again";
+
+        showNotification(errorMessage, "error");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
+      } else if (err.response?.status === 422) {
+        // خطأ في التحقق
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0]?.[0];
+        errorMessage =
+          firstError ||
+          (i18n.language === "sv"
+            ? "Ogiltig produktdata"
+            : "Invalid product data");
+        showNotification(errorMessage, "error");
+      } else {
+        errorMessage =
+          err.response?.data?.message ||
+          (i18n.language === "sv"
+            ? `Kunde inte lägga till ${productName} i varukorgen`
+            : `Could not add ${productName} to cart`);
+        showNotification(errorMessage, "error");
+      }
+    } finally {
+      // إزالة حالة الإضافة لهذا المنتج
+      setAddingToCart((prev) => ({ ...prev, [productId]: false }));
     }
   };
 
@@ -268,6 +394,36 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* تنبيهات */}
+      {notification.show && (
+        <div
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
+        >
+          <div className="flex items-start">
+            <div
+              className={`flex-shrink-0 ${
+                notification.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <FaShoppingCart className="text-lg" />
+              ) : (
+                <FaExclamationTriangle className="text-lg" />
+              )}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* الهيدر */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
@@ -443,6 +599,7 @@ const Products = () => {
                   {products.map((product) => {
                     const priceInfo = getDisplayPrice(product);
                     const productName = getProductName(product);
+                    const isAdding = addingToCart[product.id] || false;
 
                     return (
                       <div
@@ -513,10 +670,26 @@ const Products = () => {
                             </div>
                             {/* زر السلة */}
                             <button
-                              className="text-gray-400 hover:text-blue-600 transition-colors"
-                              title={t("common:addToCart")}
+                              onClick={() =>
+                                handleAddToCart(product.id, productName)
+                              }
+                              disabled={isAdding}
+                              className={`transition-colors ${
+                                isAdding
+                                  ? "text-gray-400 cursor-not-allowed"
+                                  : "text-gray-400 hover:text-blue-600"
+                              }`}
+                              title={
+                                isAdding
+                                  ? t("common:addingToCart")
+                                  : t("common:addToCart")
+                              }
                             >
-                              <FaShoppingCart size={22} />
+                              {isAdding ? (
+                                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
+                              ) : (
+                                <FaShoppingCart size={22} />
+                              )}
                             </button>
                           </div>
 
@@ -596,6 +769,24 @@ const Products = () => {
           </div>
         </div>
       </div>
+
+      {/* CSS للأنيميشن */}
+      <style jsx>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

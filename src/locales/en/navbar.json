@@ -10,5 +10,12 @@
   "menu_contact": "Contact",
   "cart_cart": "Cart",
   "cart_empty": "Your cart is empty",
-  "cart_view": "View Cart"
+  "cart_view": "View Cart",
+  "register": "Register",
+  "myAccount": "My Account",
+  "logout": "Logout",
+  "recent_items": "Recent Items",
+  "subtotal": "Subtotal",
+  "checkout": "Checkout",
+  "start_shopping": "Start Shopping"
 }

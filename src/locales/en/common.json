@@ -42,5 +42,15 @@
   "lastPageReached": "You've reached the last page",
   "lastPage": "Last Page",
   "showing": "Showing",
-  "morePagesAvailable": "More pages available"
+  "morePagesAvailable": "More pages available",
+  "aboutUs": "About Us",
+  "home": "Home",
+  "contactUs": "Contact Us",
+  "backToHome": "Back to Home",
+  "addingToCart": "Adding to cart...",
+  "piece": "piece",
+  "pieces": "pieces",
+  "save": "Save",
+  "orderNotFound": "Order not found",
+  "shoppingCart": "Shopping Cart"
 }

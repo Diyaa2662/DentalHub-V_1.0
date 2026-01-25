@@ -1,7 +1,7 @@
-// src/pages/Home.jsx - النسخة المعدلة مع نظام الترجمة الجديد
+// src/pages/Home.jsx - النسخة المعدلة مع إضافة باراميتر lang وإضافة للسلة
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../services/api";
 import {
@@ -11,15 +11,24 @@ import {
   FaShoppingCart,
   FaEye,
   FaTag,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 const Home = () => {
   const { t, i18n } = useTranslation(["home", "common"]);
+  const navigate = useNavigate();
   const [homeData, setHomeData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sliderProducts, setSliderProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // حالة للتنبيهات
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success", // success, error, info
+  });
 
   // Refs for scrollable sections
   const categoryRefs = useRef({});
@@ -27,12 +36,17 @@ const Home = () => {
   useEffect(() => {
     fetchHomeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [i18n.language]); // أضف i18n.language كمتابع
 
   const fetchHomeData = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/mainpage");
+
+      // إضافة باراميتر lang بناءً على اللغة الحالية
+      const langParam = i18n.language === "sv" ? "sv" : "en";
+      console.log(`🌐 Fetching home data with lang=${langParam}`);
+
+      const response = await api.get(`/mainpage?lang=${langParam}`);
 
       // استخراج جميع المنتجات من كل الفئات
       const allProducts = response.data.date.flatMap((cat) => cat.products);
@@ -54,6 +68,113 @@ const Home = () => {
       console.error("Error fetching home data:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // وظيفة لإظهار التنبيه
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      show: true,
+      message,
+      type,
+    });
+
+    // إخفاء التنبيه بعد 3 ثواني
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "success",
+      });
+    }, 3000);
+  };
+
+  // وظيفة إضافة منتج للسلة
+  const handleAddToCart = async (productId) => {
+    // التحقق من تسجيل الدخول
+    const token = localStorage.getItem("customerToken");
+    if (!token) {
+      showNotification(
+        i18n.language === "sv"
+          ? "Vänligen logga in för att lägga till produkter i varukorgen"
+          : "Please login to add items to cart",
+        "error",
+      );
+      return;
+    }
+
+    try {
+      console.log(`🛒 Adding product ${productId} to cart...`);
+
+      const response = await api.post(
+        "/additemtoorder",
+        {
+          product_id: productId,
+          quantity: 1, // الكمية الافتراضية
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("✅ Product added to cart:", response.data);
+
+      if (response.data && response.data.message) {
+        showNotification(
+          response.data.message ||
+            (i18n.language === "sv"
+              ? "Produkten har lagts till i varukorgen"
+              : "Product added to cart successfully"),
+          "success",
+        );
+      } else {
+        showNotification(
+          i18n.language === "sv"
+            ? "Produkten har lagts till i varukorgen"
+            : "Product added to cart successfully",
+          "success",
+        );
+      }
+    } catch (err) {
+      console.error("❌ Error adding to cart:", err);
+
+      let errorMessage = "";
+
+      if (err.response?.status === 401) {
+        // التوكن غير صالح
+        localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerData");
+        errorMessage =
+          i18n.language === "sv"
+            ? "Din session har gått ut. Var vänlig logga in igen"
+            : "Your session has expired. Please login again";
+
+        showNotification(errorMessage, "error");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
+      } else if (err.response?.status === 422) {
+        // خطأ في التحقق
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0]?.[0];
+        errorMessage =
+          firstError ||
+          (i18n.language === "sv"
+            ? "Ogiltig produktdata"
+            : "Invalid product data");
+        showNotification(errorMessage, "error");
+      } else {
+        errorMessage =
+          err.response?.data?.message ||
+          (i18n.language === "sv"
+            ? "Kunde inte lägga till produkten i varukorgen"
+            : "Could not add product to cart");
+        showNotification(errorMessage, "error");
+      }
     }
   };
 
@@ -210,6 +331,36 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* تنبيهات */}
+      {notification.show && (
+        <div
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
+        >
+          <div className="flex items-start">
+            <div
+              className={`flex-shrink-0 ${
+                notification.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <FaShoppingCart className="text-lg" />
+              ) : (
+                <FaExclamationTriangle className="text-lg" />
+              )}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* السلايدر */}
       <section className="relative h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-300">
         {sliderProducts.length > 0 ? (
@@ -252,12 +403,21 @@ const Home = () => {
                             </>
                           )}
                         </div>
-                        <Link
-                          to={`/product/${product.id}`}
-                          className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-                        >
-                          <FaEye className="ml-2" /> {t("common:viewDetails")}
-                        </Link>
+                        <div className="flex gap-3">
+                          <Link
+                            to={`/product/${product.id}`}
+                            className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                          >
+                            <FaEye className="ml-2" /> {t("common:viewDetails")}
+                          </Link>
+                          <button
+                            onClick={() => handleAddToCart(product.id)}
+                            className="inline-flex items-center bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+                          >
+                            <FaShoppingCart className="ml-2" />{" "}
+                            {t("common:addToCart")}
+                          </button>
+                        </div>
                       </div>
                       <div className="md:w-1/2 flex justify-center">
                         <div className="w-full max-w-lg">
@@ -415,7 +575,9 @@ const Home = () => {
                       <div className="p-4">
                         {/* الاسم */}
                         <h3 className="font-bold text-gray-800 text-base mb-2 truncate hover:text-blue-600 transition-colors">
-                          {productName}
+                          <Link to={`/product/${product.id}`}>
+                            {productName}
+                          </Link>
                         </h3>
 
                         {/* التقييم */}
@@ -440,8 +602,9 @@ const Home = () => {
                               </span>
                             )}
                           </div>
-                          {/* أيقونة صغيرة للسلة */}
+                          {/* زر إضافة للسلة */}
                           <button
+                            onClick={() => handleAddToCart(product.id)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
                             title={t("common:addToCart")}
                           >
@@ -503,6 +666,21 @@ const Home = () => {
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
+        }
+
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out;
         }
       `}</style>
     </div>

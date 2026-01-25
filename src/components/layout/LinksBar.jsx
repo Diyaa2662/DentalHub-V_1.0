@@ -1,17 +1,29 @@
 // src/components/layout/LinksBar.jsx - النسخة المعدلة مع نظام الترجمة الجديد
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaShoppingCart, FaGlobe, FaChevronDown } from "react-icons/fa";
+import {
+  FaShoppingCart,
+  FaGlobe,
+  FaChevronDown,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+import api from "../../services/api";
 
 const LinksBar = () => {
   const { t, i18n } = useTranslation(["navbar"]);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem("language", lng);
-  };
+  const [cartItemsCount, setCartItemsCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [cartProducts, setCartProducts] = useState([]);
+  const [loadingCart, setLoadingCart] = useState(false);
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "error",
+  });
 
   const navLinks = [
     { path: "/", label: t("navbar:menu_home"), exact: true },
@@ -19,6 +31,108 @@ const LinksBar = () => {
     { path: "/about", label: t("navbar:menu_about"), exact: false },
     { path: "/contact", label: t("navbar:menu_contact"), exact: false },
   ];
+
+  // دالة لإظهار التنبيه
+  const showNotification = (message, type = "error") => {
+    setNotification({
+      show: true,
+      message,
+      type,
+    });
+
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "error",
+      });
+    }, 3000);
+  };
+
+  // جلب بيانات السلة
+  const fetchCartData = async () => {
+    const token = localStorage.getItem("customerToken");
+
+    if (!token) {
+      // إذا لم يكن مسجل دخول، نعرض عدد 0 فقط
+      setCartItemsCount(0);
+      setCartTotal(0);
+      setCartProducts([]);
+      return;
+    }
+
+    try {
+      setLoadingCart(true);
+      const response = await api.get("/mycart", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data && response.data.order) {
+        setCartItemsCount(response.data.order.number_of_items || 0);
+        setCartTotal(parseFloat(response.data.order.total_amount) || 0);
+
+        // تخزين بعض المنتجات لعرضها في hover
+        if (
+          response.data.related_products &&
+          response.data.related_products.length > 0
+        ) {
+          setCartProducts(response.data.related_products.slice(0, 3)); // أول 3 منتجات فقط
+        } else {
+          setCartProducts([]);
+        }
+      } else {
+        setCartItemsCount(0);
+        setCartTotal(0);
+        setCartProducts([]);
+      }
+    } catch (err) {
+      // إذا كان الخطأ 401 (غير مسجل دخول) أو 404 (السلة فارغة)
+      if (err.response?.status === 401) {
+        // لا نحتاج لفعل أي شيء، العدد سيكون 0
+      } else if (err.response?.status === 404) {
+        setCartItemsCount(0);
+        setCartTotal(0);
+        setCartProducts([]);
+      } else {
+        console.error("Error fetching cart data:", err);
+      }
+      setCartItemsCount(0);
+      setCartTotal(0);
+      setCartProducts([]);
+    } finally {
+      setLoadingCart(false);
+    }
+  };
+
+  // دالة للتعامل مع النقر على سلة التسوق
+  const handleCartClick = (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("customerToken");
+    if (!token) {
+      showNotification(
+        i18n.language === "sv"
+          ? "Vänligen logga in för att se varukorgen"
+          : "Please login to view your cart",
+        "error",
+      );
+      return;
+    }
+
+    // إذا كان مسجل دخول، انتقل للسلة
+    navigate("/cart");
+  };
+
+  useEffect(() => {
+    fetchCartData();
+
+    // تحديث بيانات السلة كل 30 ثانية
+    const interval = setInterval(fetchCartData, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path, exact) => {
     if (exact) {
@@ -29,6 +143,32 @@ const LinksBar = () => {
 
   return (
     <nav className="bg-blue-700 text-white">
+      {/* تنبيهات */}
+      {notification.show && (
+        <div
+          className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in-down ${
+            notification.type === "error"
+              ? "bg-red-50 border-red-200 text-red-800"
+              : "bg-green-50 border-green-200 text-green-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
+        >
+          <div className="flex items-start">
+            <div
+              className={`flex-shrink-0 ${
+                notification.type === "error"
+                  ? "text-red-400"
+                  : "text-green-400"
+              }`}
+            >
+              <FaExclamationTriangle className="text-lg" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* تبديل اللغة على اليسار */}
@@ -42,13 +182,19 @@ const LinksBar = () => {
             {/* قائمة اللغات */}
             <div className="absolute left-0 top-full mt-1 w-40 bg-white text-gray-800 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
               <button
-                onClick={() => changeLanguage("en")}
+                onClick={() => {
+                  i18n.changeLanguage("en");
+                  localStorage.setItem("language", "en");
+                }}
                 className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${i18n.language === "en" ? "bg-blue-100 text-blue-700" : ""}`}
               >
                 English
               </button>
               <button
-                onClick={() => changeLanguage("sv")}
+                onClick={() => {
+                  i18n.changeLanguage("sv");
+                  localStorage.setItem("language", "sv");
+                }}
                 className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${i18n.language === "sv" ? "bg-blue-100 text-blue-700" : ""}`}
               >
                 Svenska
@@ -74,9 +220,9 @@ const LinksBar = () => {
           </div>
 
           {/* سلة التسوق على اليمين */}
-          <div className="relative">
-            <Link
-              to="/cart"
+          <div className="relative group">
+            <button
+              onClick={handleCartClick}
               className="flex items-center py-3 px-2 hover:bg-blue-800 transition-colors"
             >
               <FaShoppingCart size={20} />
@@ -84,27 +230,146 @@ const LinksBar = () => {
                 {t("navbar:cart_cart")}
               </span>
 
-              {/* عداد السلة */}
-              <div className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                0
-              </div>
-            </Link>
+              {/* عداد السلة - مع تحميل إذا لزم */}
+              {loadingCart ? (
+                <div className="ml-2 w-5 h-5 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                </div>
+              ) : cartItemsCount > 0 ? (
+                <div className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItemsCount > 99 ? "99+" : cartItemsCount}
+                </div>
+              ) : null}
+            </button>
 
-            {/* تفاصيل السلة على hover */}
-            <div className="absolute right-0 top-full mt-1 w-64 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible hover:opacity-100 hover:visible transition-all duration-300 z-50">
-              <div className="text-center py-2 text-gray-500">
-                {t("navbar:cart_empty")}
+            {/* تفاصيل السلة على hover - فقط إذا كان هناك منتجات */}
+            {cartProducts.length > 0 && (
+              <div className="absolute right-0 top-full mt-1 w-80 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="mb-3">
+                  <h4 className="font-bold text-gray-900 text-sm mb-2">
+                    {t("navbar:recent_items")} ({cartItemsCount})
+                  </h4>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {cartProducts.map((product) => {
+                      const productName =
+                        i18n.language === "sv" && product.s_name
+                          ? product.s_name
+                          : product.name;
+                      const quantity = product.pivot?.quantity || 1;
+                      const unitPrice =
+                        parseFloat(
+                          product.pivot?.unit_price || product.price,
+                        ) || 0;
+
+                      return (
+                        <div
+                          key={product.id}
+                          className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded"
+                        >
+                          <div className="w-8 h-8 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                            {product.images && product.images[0] ? (
+                              <img
+                                src={
+                                  product.images[0].url.startsWith("/")
+                                    ? `https://nethy-production.up.railway.app${product.images[0].url}`
+                                    : product.images[0].url
+                                }
+                                alt={productName}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://via.placeholder.com/50x50/3B82F6/FFFFFF?text=IMG";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <FaShoppingCart className="text-gray-400 text-xs" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {productName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {quantity} × ${unitPrice.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="text-sm font-bold text-blue-600">
+                            ${((quantity || 1) * (unitPrice || 0)).toFixed(2)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-gray-700">
+                      {t("navbar:subtotal")}:
+                    </span>
+                    <span className="text-lg font-bold text-blue-600">
+                      ${cartTotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Link
+                      to="/cart"
+                      className="flex-1 text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
+                    >
+                      {t("navbar:cart_view")}
+                    </Link>
+                    <Link
+                      to="/checkout"
+                      className="flex-1 text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 text-sm font-medium"
+                    >
+                      {t("navbar:checkout")}
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <Link
-                to="/cart"
-                className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mt-2"
-              >
-                {t("navbar:cart_view")}
-              </Link>
-            </div>
+            )}
+
+            {/* إذا كانت السلة فارغة */}
+            {!loadingCart &&
+              cartProducts.length === 0 &&
+              cartItemsCount === 0 && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="text-center py-2 text-gray-500">
+                    {t("navbar:cart_empty")}
+                  </div>
+                  <Link
+                    to="/products"
+                    className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mt-2 text-sm"
+                  >
+                    {t("navbar:start_shopping")}
+                  </Link>
+                </div>
+              )}
           </div>
         </div>
       </div>
+
+      {/* CSS للأنيميشن */}
+      <style jsx>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out;
+        }
+      `}</style>
     </nav>
   );
 };

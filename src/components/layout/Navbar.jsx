@@ -1,17 +1,64 @@
 // src/components/layout/Navbar.jsx - النسخة المعدلة مع نظام الترجمة الجديد
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaSearch, FaUser, FaSignInAlt } from "react-icons/fa";
+import { FaSearch, FaUser, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 
 const Navbar = () => {
   const { t } = useTranslation(["navbar"]);
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  // احسب حالة تسجيل الدخول مباشرة عند التهيئة
+  const getInitialLoginStatus = () => {
+    const token = localStorage.getItem("customerToken");
+    const customerData = localStorage.getItem("customerData");
+    if (token && customerData) {
+      try {
+        const parsedData = JSON.parse(customerData);
+        if (parsedData && parsedData.email) {
+          return true;
+        }
+      } catch (err) {
+        console.error("Error parsing customer data:", err);
+      }
+    }
+    return false;
+  };
+
+  const [isLoggedIn, setIsLoggedIn] = useState(getInitialLoginStatus);
+
+  // الاستماع لتغييرات localStorage فقط
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsLoggedIn(getInitialLoginStatus());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    // مسح بيانات الزبون فقط
+    localStorage.removeItem("customerToken");
+    localStorage.removeItem("customerData");
+    localStorage.removeItem("customerEmail");
+    sessionStorage.removeItem("customerToken");
+    sessionStorage.removeItem("customerData");
+
+    // تحديث حالة تسجيل الدخول
+    setIsLoggedIn(false);
+
+    // إعادة تحميل الصفحة
+    window.location.href = "/";
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -42,21 +89,35 @@ const Navbar = () => {
 
           {/* تسجيل الدخول والملف الشخصي على اليمين */}
           <div className="flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="flex items-center text-gray-700 hover:text-blue-600"
-            >
-              <FaSignInAlt className="mr-1" />
-              <span className="hidden md:inline">{t("navbar:login")}</span>
-            </Link>
+            {/* زر تسجيل الدخول/تسجيل الخروج */}
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center text-gray-700 hover:text-red-600 transition-colors"
+              >
+                <FaSignOutAlt className="mr-1" />
+                <span className="hidden md:inline">{t("navbar:logout")}</span>
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                <FaSignInAlt className="mr-1" />
+                <span className="hidden md:inline">{t("navbar:login")}</span>
+              </Link>
+            )}
 
-            <Link
-              to="/account"
-              className="flex items-center text-gray-700 hover:text-blue-600"
-            >
-              <FaUser className="mr-1" />
-              <span className="hidden md:inline">{t("navbar:account")}</span>
-            </Link>
+            {/* زر الملف الشخصي - يظهر فقط إذا كان المستخدم مسجل دخول */}
+            {isLoggedIn && (
+              <Link
+                to="/profile"
+                className="flex items-center text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                <FaUser className="mr-1" />
+                <span className="hidden md:inline">{t("navbar:account")}</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

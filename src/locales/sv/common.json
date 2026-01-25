@@ -42,5 +42,15 @@
   "lastPageReached": "Du har nått den sista sidan",
   "lastPage": "Sista Sidan",
   "showing": "Visar",
-  "morePagesAvailable": "Fler sidor tillgängliga"
+  "morePagesAvailable": "Fler sidor tillgängliga",
+  "aboutUs": "Om Oss",
+  "home": "Hem",
+  "contactUs": "Kontakta Oss",
+  "backToHome": "Tillbaka till Hem",
+  "addingToCart": "Lägger till i varukorgen...",
+  "piece": "st",
+  "pieces": "st",
+  "save": "Spara",
+  "orderNotFound": "Order hittades inte",
+  "shoppingCart": "Kundvagn"
 }

@@ -10,5 +10,12 @@
   "menu_contact": "Kontakt",
   "cart_cart": "Kundvagn",
   "cart_empty": "Din kundvagn är tom",
-  "cart_view": "Visa Kundvagn"
+  "cart_view": "Visa Kundvagn",
+  "register": "Registrera",
+  "myAccount": "Mitt Konto",
+  "logout": "Logga ut",
+  "recent_items": "Senaste varor",
+  "subtotal": "Delsumma",
+  "checkout": "Till kassan",
+  "start_shopping": "Börja handla"
 }
