@@ -357,7 +357,7 @@ const Home = () => {
       )}
 
       {/* السلايدر */}
-      <section className="relative h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-300">
+      <section className="relative h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200">
         {sliderProducts.length > 0 ? (
           <div className="relative w-full h-full">
             {/* حاوية السلايدر */}
@@ -446,13 +446,13 @@ const Home = () => {
             {/* أزرار التحكم */}
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors z-10"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-700/50 text-white p-3 rounded-full transition-colors z-10"
             >
               <FaChevronLeft />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors z-10"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-700/50 text-white p-3 rounded-full transition-colors z-10"
             >
               <FaChevronRight />
             </button>
