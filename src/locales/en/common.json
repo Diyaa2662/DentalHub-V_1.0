@@ -52,5 +52,6 @@
   "pieces": "pieces",
   "save": "Save",
   "orderNotFound": "Order not found",
-  "shoppingCart": "Shopping Cart"
+  "shoppingCart": "Shopping Cart",
+  "goBack": "Go Back"
 }

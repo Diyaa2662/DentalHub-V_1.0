@@ -66,10 +66,7 @@ const Products = () => {
         setLoadingMore(true);
       }
 
-      console.log(`📄 Fetching products page ${currentPage}...`);
       const response = await api.get(`/shop?page=${currentPage}`);
-
-      console.log("📦 Products data received:", response.data);
 
       if (
         response.data &&
@@ -100,7 +97,6 @@ const Products = () => {
   const fetchCategories = async () => {
     try {
       const response = await api.get("/categories");
-      console.log("📋 Categories data:", response.data);
 
       if (response.data && response.data.data) {
         setCategories(response.data.data);
@@ -147,8 +143,6 @@ const Products = () => {
     setAddingToCart((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      console.log(`🛒 Adding product ${productId} to cart...`);
-
       const response = await api.post(
         "/additemtoorder",
         {
@@ -162,8 +156,6 @@ const Products = () => {
           },
         },
       );
-
-      console.log("✅ Product added to cart:", response.data);
 
       if (response.data && response.data.message) {
         showNotification(
@@ -227,14 +219,11 @@ const Products = () => {
   const filterProducts = async () => {
     try {
       setFilterLoading(true);
-      console.log("🔍 Filtering by categories:", selectedCategories);
 
       // إرسال طلب POST لتصفية المنتجات
       const response = await api.post("/categoryfilter", {
         categories: selectedCategories,
       });
-
-      console.log("✅ Filtered response:", response.data);
 
       if (response.data && response.data.date) {
         // ✅ تصحيح: بيانات الفلترة تأتي بهيكلية مختلفة
@@ -249,7 +238,6 @@ const Products = () => {
           }
         });
 
-        console.log("📊 Extracted products:", allProducts);
         setProducts(allProducts);
         setHasMorePages(false); // عند التصفية، لا يوجد صفحات
         setCurrentPage(1); // نرجع للصفحة الأولى عند التصفية

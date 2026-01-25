@@ -56,15 +56,11 @@ const Profile = () => {
       setLoading(true);
       setError("");
 
-      console.log("🔍 Fetching profile data...");
-
       const response = await api.get("/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("✅ Profile data:", response.data);
 
       if (response.data && response.data.data) {
         const userData = response.data.data;
@@ -115,8 +111,6 @@ const Profile = () => {
     setSuccess("");
 
     try {
-      console.log("💾 Saving profile data to /updateuser:", formData);
-
       // إرسال البيانات إلى /updateuser
       const response = await api.post("/updateuser", formData, {
         headers: {
@@ -124,8 +118,6 @@ const Profile = () => {
           "Content-Type": "application/json",
         },
       });
-
-      console.log("✅ Profile updated response:", response.data);
 
       if (response.data && response.data.data) {
         const updatedData = response.data.data;

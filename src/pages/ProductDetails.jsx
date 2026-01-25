@@ -86,10 +86,7 @@ const ProductDetails = () => {
     setAddingToCart(true);
 
     try {
-      console.log(
-        `🛒 Adding product ${id} to cart with quantity ${quantity}...`,
-      );
-
+     
       const response = await api.post(
         "/additemtoorder",
         {
@@ -104,7 +101,6 @@ const ProductDetails = () => {
         },
       );
 
-      console.log("✅ Product added to cart:", response.data);
 
       if (response.data && response.data.message) {
         showNotification(

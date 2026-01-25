@@ -45,11 +45,7 @@ const Login = () => {
     setError("");
 
     try {
-      console.log("📤 Sending login request:", formData);
-
       const response = await api.post("/login", formData);
-
-      console.log("✅ Login response:", response.data);
 
       if (response.data && response.data.user && response.data.token) {
         // حفظ بيانات المستخدم في localStorage
@@ -72,9 +68,6 @@ const Login = () => {
         // حفظ في sessionStorage أيضاً
         sessionStorage.setItem("customerToken", token);
         sessionStorage.setItem("customerData", JSON.stringify(userData));
-
-        console.log("💾 Saved customer data:", userData);
-        console.log("🔑 Saved customer token:", token);
 
         // ⭐ توجيه المستجر للصفحة الرئيسية فقط
         navigate("/");

@@ -132,16 +132,10 @@ const Register = () => {
     setError("");
 
     try {
-      console.log("📤 Sending registration request:", formData);
-
       const response = await api.post("/register", formData);
-
-      console.log("✅ Registration response:", response.data);
 
       // التعديل: فقط نتحقق من أن الاستجابة تحتوي على رسالة نجاح
       if (response.data && response.data.message) {
-        console.log("💾 Registration successful");
-
         setSuccess(true);
 
         // تنظيف النموذج بعد النجاح (اختياري)

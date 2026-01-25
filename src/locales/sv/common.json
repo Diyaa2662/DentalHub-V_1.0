@@ -52,5 +52,6 @@
   "pieces": "st",
   "save": "Spara",
   "orderNotFound": "Order hittades inte",
-  "shoppingCart": "Kundvagn"
+  "shoppingCart": "Kundvagn",
+  "goBack": "Gå Tillbaka"
 }

@@ -49,13 +49,9 @@ const SearchResults = () => {
       setLoading(true);
       setError("");
 
-      console.log(`🔍 Searching for: "${query}"`);
-
       const response = await api.post("/search", {
         value: query,
       });
-
-      console.log("✅ Search results:", response.data);
 
       if (response.data && response.data.data) {
         setSearchResults(response.data.data);

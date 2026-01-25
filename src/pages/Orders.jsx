@@ -43,15 +43,11 @@ const Orders = () => {
       setLoading(true);
       setError("");
 
-      console.log("📦 Fetching orders history...");
-
       const response = await api.get("/myhistory", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("✅ Orders data received:", response.data);
 
       if (response.data && response.data.data) {
         setOrders(response.data.data);

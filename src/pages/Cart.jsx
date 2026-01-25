@@ -52,15 +52,11 @@ const Cart = () => {
       setLoading(true);
       setError("");
 
-      console.log("🛒 Fetching cart data...");
-
       const response = await api.get("/mycart", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("✅ Cart data received:", response.data);
 
       if (response.data) {
         setCartData(response.data);
@@ -132,10 +128,6 @@ const Cart = () => {
     setUpdatingQuantity((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      console.log(
-        `🔄 Updating quantity for product ${productId} to ${newQuantity}`,
-      );
-
       // نجد الـ order_id من بيانات السلة
       const orderId = cartData?.order?.id;
       if (!orderId) {
@@ -144,11 +136,7 @@ const Cart = () => {
       }
 
       // أولاً: حذف المنتج من السلة
-      console.log(
-        `🗑️ Removing product ${productId} from order ${orderId} first`,
-      );
-
-      const removeResponse = await api.post(
+      await api.post(
         `/removeitemfromorder/${orderId}`,
         {
           product_id: productId,
@@ -161,15 +149,10 @@ const Cart = () => {
         },
       );
 
-      console.log("✅ Product removed:", removeResponse.data);
-
       // انتظر قليلاً قبل الإضافة الجديدة
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ثانياً: إضافة المنتج بالكمية الجديدة
-      console.log(
-        `➕ Adding product ${productId} with new quantity ${newQuantity}`,
-      );
 
       const addResponse = await api.post(
         "/additemtoorder",
@@ -184,8 +167,6 @@ const Cart = () => {
           },
         },
       );
-
-      console.log("✅ Product added with new quantity:", addResponse.data);
 
       if (addResponse.data && addResponse.data.message) {
         showNotification(
@@ -213,9 +194,7 @@ const Cart = () => {
       } else if (err.response?.status === 404) {
         // إذا فشل الحذف، نحاول الإضافة مباشرة
         try {
-          console.log("⚠️ Remove failed, trying direct addition");
-
-          const addResponse = await api.post(
+          await api.post(
             "/additemtoorder",
             {
               product_id: productId,
@@ -229,7 +208,6 @@ const Cart = () => {
             },
           );
 
-          console.log("✅ Direct addition successful:", addResponse.data);
           showNotification(t("cart:quantityUpdated"), "success");
           fetchCartData();
 
@@ -282,8 +260,6 @@ const Cart = () => {
     }
 
     try {
-      console.log(`🗑️ Removing product ${productId} from order ${orderId}`);
-
       // استخدام order_id في الرابط
       const response = await api.post(
         `/removeitemfromorder/${orderId}`,
@@ -297,8 +273,6 @@ const Cart = () => {
           },
         },
       );
-
-      console.log("✅ Item removed:", response.data);
 
       if (response.data && response.data.message) {
         showNotification(
@@ -350,8 +324,6 @@ const Cart = () => {
     setCheckingOut(true);
 
     try {
-      console.log(`🚀 Processing checkout for order ${orderId}...`);
-
       const response = await api.post(
         `/checkout/${orderId}`,
         {}, // جسم الطلب فارغ
@@ -362,8 +334,6 @@ const Cart = () => {
           },
         },
       );
-
-      console.log("✅ Checkout successful:", response.data);
 
       if (response.data && response.data.message) {
         showNotification(

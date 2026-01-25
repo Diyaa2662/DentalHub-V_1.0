@@ -166,13 +166,6 @@ const ChangePassword = () => {
     setSuccess("");
 
     try {
-      console.log("🔐 Changing password...", {
-        email: formData.email,
-        currentPassword: "[HIDDEN]",
-        newPassword: "[HIDDEN]",
-        confirmPassword: "[HIDDEN]",
-      });
-
       // هنا التعديل المهم: أسماء الحقول يجب أن تكون كما في API
       const response = await api.post(
         "/resetpassword",
@@ -189,8 +182,6 @@ const ChangePassword = () => {
           },
         },
       );
-
-      console.log("✅ Password change response:", response.data);
 
       if (response.data && response.data.message) {
         setSuccess(response.data.message || t("profile:passwordChangeSuccess"));

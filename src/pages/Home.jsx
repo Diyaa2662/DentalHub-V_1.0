@@ -44,7 +44,6 @@ const Home = () => {
 
       // إضافة باراميتر lang بناءً على اللغة الحالية
       const langParam = i18n.language === "sv" ? "sv" : "en";
-      console.log(`🌐 Fetching home data with lang=${langParam}`);
 
       const response = await api.get(`/mainpage?lang=${langParam}`);
 
@@ -104,8 +103,6 @@ const Home = () => {
     }
 
     try {
-      console.log(`🛒 Adding product ${productId} to cart...`);
-
       const response = await api.post(
         "/additemtoorder",
         {
@@ -119,8 +116,6 @@ const Home = () => {
           },
         },
       );
-
-      console.log("✅ Product added to cart:", response.data);
 
       if (response.data && response.data.message) {
         showNotification(
