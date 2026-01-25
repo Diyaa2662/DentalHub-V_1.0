@@ -1,80 +1,124 @@
-// src/components/layout/Header.jsx - النسخة المبسطة
-import React, { useState, useEffect } from "react";
+// src/components/layout/Header.jsx - النسخة المعدلة مع إصلاح الاهتزاز
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
 import LinksBar from "./LinksBar";
 
 const Header = () => {
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
+  const timeoutRef = useRef(null);
+
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+
+    // استخدام requestAnimationFrame لمنع الاهتزاز
+    if (!ticking.current) {
+      ticking.current = true;
+
+      requestAnimationFrame(() => {
+        // عند أعلى الصفحة - أظهر Navbar دائماً
+        if (currentScrollY <= 20) {
+          setIsNavbarVisible(true);
+          ticking.current = false;
+          return;
+        }
+
+        // حساب فرق السكرول
+        const scrollDifference = currentScrollY - lastScrollY.current;
+
+        // تجاهل الحركات الصغيرة جداً (تمنع الاهتزاز)
+        if (Math.abs(scrollDifference) < 8) {
+          ticking.current = false;
+          return;
+        }
+
+        const isScrollingDown = scrollDifference > 0;
+
+        // زيادة العتبة لمنع التبديل السريع
+        const scrollThreshold = 15;
+
+        if (Math.abs(scrollDifference) > scrollThreshold) {
+          if (isScrollingDown && isNavbarVisible) {
+            // سكرول لأسفل - أخفي Navbar
+            setIsNavbarVisible(false);
+          } else if (!isScrollingDown && !isNavbarVisible) {
+            // سكرول لأعلى - أظهر Navbar
+            setIsNavbarVisible(true);
+          }
+        }
+
+        lastScrollY.current = currentScrollY;
+        ticking.current = false;
+      });
+    }
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // عند أعلى الصفحة - أظهر Navbar دائماً
-      if (currentScrollY <= 10) {
-        setIsNavbarVisible(true);
-        setLastScrollY(currentScrollY);
-        return;
+    // إضافة debounce بسيط لمنع الأحداث المتكررة جداً
+    const debouncedHandleScroll = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
 
-      // تحقق من اتجاه السكرول
-      const isScrollingDown = currentScrollY > lastScrollY;
-      const scrollDifference = Math.abs(currentScrollY - lastScrollY);
-
-      // تأكد أن السكرول كبير كفاية قبل الاختفاء/الظهور
-      if (scrollDifference > 10) {
-        if (isScrollingDown && isNavbarVisible) {
-          // سكرول لأسفل - أخفي Navbar
-          setIsNavbarVisible(false);
-        } else if (!isScrollingDown && !isNavbarVisible) {
-          // سكرول لأعلى - أظهر Navbar
-          setIsNavbarVisible(true);
-        }
-      }
-
-      setLastScrollY(currentScrollY);
+      timeoutRef.current = setTimeout(() => {
+        handleScroll();
+      }, 16); // ≈ 60fps
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY, isNavbarVisible]);
+    window.addEventListener("scroll", debouncedHandleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", debouncedHandleScroll);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNavbarVisible]);
 
   return (
-    <>
-      {/* Navbar - ثابت في الأعلى مع أنيميشن */}
+    <div className="relative">
+      {/* Navbar - مع تحسينات للأنيميشن */}
       <div
-        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-transform duration-300 ease-out ${
           isNavbarVisible ? "translate-y-0" : "-translate-y-full"
         }`}
-      >
-        <Navbar />
-      </div>
-
-      {/* LinksBar - يتحرك مع Navbar لكن يلتصق عند الاختفاء */}
-      <div
-        className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${
-          isNavbarVisible ? "mt-16" : "mt-0"
-        }`}
         style={{
-          top: isNavbarVisible ? "auto" : "0",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
         }}
       >
-        <LinksBar />
+        <div className="w-full">
+          <Navbar />
+        </div>
       </div>
 
-      {/* مساحة احتياطية لمنع القفز */}
+      {/* LinksBar - محسن للالتصاق */}
       <div
-        className={`transition-all duration-300 ${
-          isNavbarVisible ? "h-28" : "h-14"
+        className={`fixed left-0 right-0 z-40 w-full transition-all duration-300 ease-out ${
+          isNavbarVisible
+            ? "top-[64px]" // بعد Navbar
+            : "top-0" // في الأعلى عندما يختفي Navbar
         }`}
-      />
+        style={{
+          willChange: "top",
+          backfaceVisibility: "hidden",
+        }}
+      >
+        <div className="w-full">
+          <LinksBar />
+        </div>
+      </div>
 
-      {/* زر العودة لأعلى */}
+      {/* مساحة احتياطية - ثابتة بدون ترانزشن */}
+      <div className={`w-full ${isNavbarVisible ? "h-28" : "h-14"}`} />
+
+      {/* زر العودة لأعلى - يظهر بعد تأخير */}
       {!isNavbarVisible && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed right-4 bottom-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 z-40"
+          className="fixed right-4 bottom-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 z-40 transition-opacity duration-300"
           aria-label="Top"
         >
           <svg
@@ -92,7 +136,7 @@ const Header = () => {
           </svg>
         </button>
       )}
-    </>
+    </div>
   );
 };
 
