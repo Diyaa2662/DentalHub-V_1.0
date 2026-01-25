@@ -75,7 +75,7 @@ const Header = () => {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed right-4 bottom-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 z-40"
-          aria-label="العودة لأعلى"
+          aria-label="Top"
         >
           <svg
             className="h-5 w-5"

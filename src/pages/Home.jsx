@@ -378,7 +378,7 @@ const Home = () => {
                     <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between h-full">
                       {/* النص - مع تعديل المسافة للهواتف */}
                       <div className="w-full md:w-1/2 text-white mb-6 md:mb-0 px-4 md:px-0 mt-4 md:mt-0">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 line-clamp-2">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
                           {productName}
                         </h2>
                         <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 md:mb-6 opacity-90 line-clamp-2 md:line-clamp-3">
@@ -451,14 +451,14 @@ const Home = () => {
             <button
               onClick={prevSlide}
               className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
-              aria-label="السابق"
+              aria-label="Previous Slide"
             >
               <FaChevronLeft className="text-sm sm:text-base" />
             </button>
             <button
               onClick={nextSlide}
               className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
-              aria-label="التالي"
+              aria-label="Next Slide"
             >
               <FaChevronRight className="text-sm sm:text-base" />
             </button>
@@ -474,7 +474,7 @@ const Home = () => {
                       ? "bg-white"
                       : "bg-white/50 hover:bg-white/70"
                   }`}
-                  aria-label={`انتقال للشريحة ${index + 1}`}
+                  aria-label={`Slide ${index + 1}`}
                 />
               ))}
             </div>
