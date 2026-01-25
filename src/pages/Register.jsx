@@ -597,26 +597,6 @@ const Register = () => {
                     </Link>
                   </p>
                 </div>
-
-                {/* سياسة الخصوصية */}
-                <div className="mt-6 text-center">
-                  <p className="text-gray-500 text-xs">
-                    {t("auth:privacyNotice")}{" "}
-                    <Link
-                      to="/privacy"
-                      className="text-green-500 hover:text-green-700"
-                    >
-                      {t("auth:privacyPolicy")}
-                    </Link>{" "}
-                    {t("auth:and")}{" "}
-                    <Link
-                      to="/terms"
-                      className="text-green-500 hover:text-green-700"
-                    >
-                      {t("auth:termsOfService")}
-                    </Link>
-                  </p>
-                </div>
               </div>
 
               {/* معلومات إضافية للهواتف */}
