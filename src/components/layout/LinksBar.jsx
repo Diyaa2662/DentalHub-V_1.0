@@ -148,7 +148,7 @@ const LinksBar = () => {
         <div className="w-full">
           <div className="container mx-auto px-4 w-full">
             {/* المحتوى الرئيسي - للشاشات الكبيرة والصغيرة معاً */}
-            <div className="flex items-center justify-between py-3 w-full">
+            <div className="flex items-center justify-between w-full">
               {/* تبديل اللغة على اليسار - يظهر للجميع */}
               <div className="relative group">
                 <button className="flex items-center py-3 px-2 hover:bg-blue-800 transition-colors rounded">
@@ -355,7 +355,7 @@ const LinksBar = () => {
             </div>
 
             {/* الروابط للهواتف - تظهر كأشرطة تحت الشريط الرئيسي */}
-            <div className="md:hidden flex items-center justify-around py-2 border-t border-blue-600/30 mt-1 w-full">
+            <div className="md:hidden flex items-center justify-around border-t border-blue-600/30 w-full">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
