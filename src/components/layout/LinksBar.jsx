@@ -24,7 +24,7 @@ const LinksBar = () => {
     message: "",
     type: "error",
   });
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  // const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
   const navLinks = [
     { path: "/", label: t("navbar:menu_home"), exact: true },
@@ -142,15 +142,15 @@ const LinksBar = () => {
     return location.pathname.startsWith(path);
   };
 
-  const toggleLanguageMenu = () => {
-    setIsLanguageMenuOpen(!isLanguageMenuOpen);
-  };
+  // const toggleLanguageMenu = () => {
+  //   setIsLanguageMenuOpen(!isLanguageMenuOpen);
+  // };
 
-  const changeLanguage = (lang) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem("language", lang);
-    setIsLanguageMenuOpen(false);
-  };
+  // const changeLanguage = (lang) => {
+  //   i18n.changeLanguage(lang);
+  //   localStorage.setItem("language", lang);
+  //   setIsLanguageMenuOpen(false);
+  // };
 
   return (
     <nav className="bg-blue-700 text-white">
@@ -182,49 +182,50 @@ const LinksBar = () => {
       )}
 
       <div className="container mx-auto px-4">
-        {/* المحتوى الرئيسي */}
-        <div className="flex items-center justify-between py-2">
-          {/* تبديل اللغة على اليسار */}
-          <div className="relative">
-            <button
-              onClick={toggleLanguageMenu}
-              className="flex items-center py-2 px-3 hover:bg-blue-800 transition-colors rounded-lg text-sm md:text-base md:py-3 md:px-4"
-            >
+        {/* المحتوى الرئيسي - للشاشات الكبيرة والصغيرة معاً */}
+        <div className="flex items-center justify-between py-3">
+          {/* تبديل اللغة على اليسار - يظهر للجميع */}
+          <div className="relative group">
+            <button className="flex items-center py-3 px-2 hover:bg-blue-800 transition-colors rounded">
               <FaGlobe className="mr-2" />
               <span>{i18n.language === "en" ? "English" : "Svenska"}</span>
               <FaChevronDown className="ml-1" size={12} />
             </button>
 
             {/* قائمة اللغات */}
-            {isLanguageMenuOpen && (
-              <div className="absolute left-0 top-full mt-1 w-40 bg-white text-gray-800 rounded-lg shadow-xl py-2 z-50 animate-fadeIn">
-                <button
-                  onClick={() => changeLanguage("en")}
-                  className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${
-                    i18n.language === "en" ? "bg-blue-100 text-blue-700" : ""
-                  }`}
-                >
-                  English
-                </button>
-                <button
-                  onClick={() => changeLanguage("sv")}
-                  className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${
-                    i18n.language === "sv" ? "bg-blue-100 text-blue-700" : ""
-                  }`}
-                >
-                  Svenska
-                </button>
-              </div>
-            )}
+            <div className="absolute left-0 top-full mt-1 w-40 bg-white text-gray-800 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+              <button
+                onClick={() => {
+                  i18n.changeLanguage("en");
+                  localStorage.setItem("language", "en");
+                }}
+                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${
+                  i18n.language === "en" ? "bg-blue-100 text-blue-700" : ""
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => {
+                  i18n.changeLanguage("sv");
+                  localStorage.setItem("language", "sv");
+                }}
+                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${
+                  i18n.language === "sv" ? "bg-blue-100 text-blue-700" : ""
+                }`}
+              >
+                Svenska
+              </button>
+            </div>
           </div>
 
-          {/* الروابط في المنتصف - تظهر فقط على الشاشات المتوسطة فما فوق */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+          {/* الروابط في المنتصف - مخفي على الهواتف، يظهر على الأجهزة المتوسطة فما فوق */}
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`py-2 px-1 font-medium transition-colors border-b-2 text-sm lg:text-base lg:py-3 ${
+                className={`py-3 px-1 font-medium transition-colors border-b-2 ${
                   isActive(link.path, link.exact)
                     ? "border-white text-white"
                     : "border-transparent hover:border-white/50 hover:text-white/90"
@@ -235,16 +236,14 @@ const LinksBar = () => {
             ))}
           </div>
 
-          {/* سلة التسوق على اليمين */}
-          <div className="relative">
+          {/* سلة التسوق على اليمين - للشاشات الكبيرة */}
+          <div className="hidden md:block relative group">
             <button
               onClick={handleCartClick}
-              className="flex items-center py-2 px-3 hover:bg-blue-800 transition-colors rounded-lg text-sm md:text-base md:py-3 md:px-4"
+              className="flex items-center py-3 px-2 hover:bg-blue-800 transition-colors rounded"
             >
-              <FaShoppingCart size={18} className="md:size-20" />
-              <span className="ml-2 hidden sm:inline">
-                {t("navbar:cart_cart")}
-              </span>
+              <FaShoppingCart size={20} />
+              <span className="ml-2">{t("navbar:cart_cart")}</span>
 
               {/* عداد السلة - مع تحميل إذا لزم */}
               {loadingCart ? (
@@ -258,9 +257,9 @@ const LinksBar = () => {
               ) : null}
             </button>
 
-            {/* تفاصيل السلة - تظهر فقط على hover للشاشات الكبيرة */}
+            {/* تفاصيل السلة على hover - فقط إذا كان هناك منتجات */}
             {cartProducts.length > 0 && (
-              <div className="hidden lg:block absolute right-0 top-full mt-1 w-80 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+              <div className="absolute right-0 top-full mt-1 w-80 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                 <div className="mb-3">
                   <h4 className="font-bold text-gray-900 text-sm mb-2">
                     {t("navbar:recent_items")} ({cartItemsCount})
@@ -348,20 +347,55 @@ const LinksBar = () => {
                 </div>
               </div>
             )}
+
+            {/* إذا كانت السلة فارغة */}
+            {!loadingCart &&
+              cartProducts.length === 0 &&
+              cartItemsCount === 0 && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white text-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="text-center py-2 text-gray-500">
+                    {t("navbar:cart_empty")}
+                  </div>
+                  <Link
+                    to="/products"
+                    className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mt-2 text-sm"
+                  >
+                    {t("navbar:start_shopping")}
+                  </Link>
+                </div>
+              )}
+          </div>
+
+          {/* سلة التسوق للهواتف - تظهر فقط على الهواتف */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={handleCartClick}
+              className="flex items-center p-2 hover:bg-blue-800 transition-colors rounded relative"
+            >
+              <FaShoppingCart size={20} />
+              {loadingCart ? (
+                <div className="ml-2 w-5 h-5 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                </div>
+              ) : cartItemsCount > 0 ? (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItemsCount > 99 ? "99+" : cartItemsCount}
+                </div>
+              ) : null}
+            </button>
           </div>
         </div>
 
-        {/* الروابط للشاشات الصغيرة - تظهر على شكل أشرطة */}
-        <div className="md:hidden flex items-center justify-around py-2 border-t border-blue-600 mt-1">
+        {/* الروابط للهواتف - تظهر كأشرطة تحت الشريط الرئيسي */}
+        <div className="md:hidden flex items-center justify-around py-2 border-t border-blue-600/30 mt-1">
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              onClick={() => setIsLanguageMenuOpen(false)}
               className={`flex-1 text-center py-2 px-1 text-xs font-medium transition-colors ${
                 isActive(link.path, link.exact)
-                  ? "text-white bg-blue-800 rounded"
-                  : "hover:text-white/90"
+                  ? "text-white"
+                  : "text-blue-200 hover:text-white"
               }`}
             >
               {link.label}
@@ -383,23 +417,8 @@ const LinksBar = () => {
           }
         }
 
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-5px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
         .animate-fade-in-down {
           animation: fadeInDown 0.3s ease-out;
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
         }
       `}</style>
     </nav>
