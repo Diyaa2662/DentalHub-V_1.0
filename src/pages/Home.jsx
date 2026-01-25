@@ -356,8 +356,8 @@ const Home = () => {
         </div>
       )}
 
-      {/* السلايدر */}
-      <section className="relative h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200">
+      {/* السلايدر - معدل مع padding-top لمنع التداخل */}
+      <section className="relative pt-12 md:pt-0 md:h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200">
         {sliderProducts.length > 0 ? (
           <div className="relative w-full h-full">
             {/* حاوية السلايدر */}
@@ -375,60 +375,64 @@ const Home = () => {
                     key={product.id}
                     className="min-w-full h-full flex-shrink-0 flex items-center"
                   >
-                    <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
-                      <div className="md:w-1/2 text-white mb-10 md:mb-0">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                    <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between h-full">
+                      {/* النص - مع تعديل المسافة للهواتف */}
+                      <div className="w-full md:w-1/2 text-white mb-6 md:mb-0 px-4 md:px-0 mt-4 md:mt-0">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 line-clamp-2">
                           {productName}
                         </h2>
-                        <p className="text-xl mb-6 opacity-90">
+                        <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 md:mb-6 opacity-90 line-clamp-2 md:line-clamp-3">
                           {productDescription}
                         </p>
-                        <div className="flex items-center mb-4">
-                          <span className="text-3xl font-bold">
+                        <div className="flex flex-wrap items-center mb-4 md:mb-6">
+                          <span className="text-2xl sm:text-3xl md:text-4xl font-bold mr-2 md:mr-4">
                             ${priceInfo.displayPrice.toFixed(2)}
                           </span>
                           {priceInfo.hasDiscount && (
                             <>
-                              <span className="text-lg line-through text-gray-300 ml-4">
+                              <span className="text-base sm:text-lg md:text-xl line-through text-gray-300 mr-2 md:mr-4">
                                 ${priceInfo.originalPrice.toFixed(2)}
                               </span>
-                              <span className="ml-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                              <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                                 -{priceInfo.discountPercentage}%
                               </span>
                             </>
                           )}
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-2 md:gap-3">
                           <Link
                             to={`/product/${product.id}`}
-                            className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                            className="inline-flex items-center bg-white text-blue-600 px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm sm:text-base"
                           >
-                            <FaEye className="ml-2" /> {t("common:viewDetails")}
+                            <FaEye className="mr-1 sm:mr-2" />{" "}
+                            {t("common:viewDetails")}
                           </Link>
                           <button
                             onClick={() => handleAddToCart(product.id)}
-                            className="inline-flex items-center bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+                            className="inline-flex items-center bg-green-600 text-white px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm sm:text-base"
                           >
-                            <FaShoppingCart className="ml-2" />{" "}
+                            <FaShoppingCart className="mr-1 sm:mr-2" />{" "}
                             {t("common:addToCart")}
                           </button>
                         </div>
                       </div>
-                      <div className="md:w-1/2 flex justify-center">
-                        <div className="w-full max-w-lg">
+
+                      {/* الصورة - مع تعديل المسافة */}
+                      <div className="w-full md:w-1/2 flex justify-center items-center px-4 md:px-0 mt-2 md:mt-0">
+                        <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
                           {product.images && product.images[0] ? (
                             <img
                               src={getFullImageUrl(product.images[0].url)}
                               alt={productName}
-                              className="rounded-lg shadow-2xl w-full h-auto object-contain max-h-80"
+                              className="rounded-lg shadow-xl w-full h-auto object-contain max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-80"
                               onError={(e) => {
                                 e.target.src =
                                   "https://via.placeholder.com/600x400/3B82F6/FFFFFF?text=No+Image";
                               }}
                             />
                           ) : (
-                            <div className="w-full h-64 bg-white/20 rounded-lg flex items-center justify-center">
-                              <span className="text-white text-xl">
+                            <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64 bg-white/20 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-sm sm:text-base md:text-lg lg:text-xl px-4 text-center">
                                 {i18n.language === "sv"
                                   ? "Ingen bild tillgänglig"
                                   : t("product:noImages")}
@@ -446,34 +450,37 @@ const Home = () => {
             {/* أزرار التحكم */}
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-700/50 text-white p-3 rounded-full transition-colors z-10"
+              className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
+              aria-label="السابق"
             >
-              <FaChevronLeft />
+              <FaChevronLeft className="text-sm sm:text-base" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-700 hover:bg-blue-700/50 text-white p-3 rounded-full transition-colors z-10"
+              className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
+              aria-label="التالي"
             >
-              <FaChevronRight />
+              <FaChevronRight className="text-sm sm:text-base" />
             </button>
 
             {/* النقاط */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2 z-10">
               {sliderProducts.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
+                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
                     index === currentSlide
                       ? "bg-white"
                       : "bg-white/50 hover:bg-white/70"
                   }`}
+                  aria-label={`انتقال للشريحة ${index + 1}`}
                 />
               ))}
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-white text-2xl">
+          <div className="flex items-center justify-center h-full text-white text-lg sm:text-xl md:text-2xl px-4 text-center pt-12 md:pt-0">
             {t("common:noProducts")}
           </div>
         )}
