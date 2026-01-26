@@ -86,7 +86,6 @@ const ProductDetails = () => {
     setAddingToCart(true);
 
     try {
-     
       const response = await api.post(
         "/additemtoorder",
         {
@@ -100,7 +99,6 @@ const ProductDetails = () => {
           },
         },
       );
-
 
       if (response.data && response.data.message) {
         showNotification(
@@ -347,7 +345,7 @@ const ProductDetails = () => {
                       product.images[selectedImageIndex].url,
                     )}
                     alt={productName}
-                    className="w-full h-[400px] object-contain p-4"
+                    className="w-full h-[350px] object-contain p-4"
                     onError={(e) => {
                       e.target.src =
                         "https://via.placeholder.com/600x600/3B82F6/FFFFFF?text=No+Image";

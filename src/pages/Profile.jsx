@@ -594,7 +594,7 @@ const Profile = () => {
                       <h3 className="text-xl font-bold text-gray-900 mb-6">
                         {t("profile:accountDetails")}
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="text-center bg-blue-50 p-6 rounded-xl">
                           <div className="text-3xl font-bold text-blue-600 mb-2">
                             {profileData?.orders_count || 0}
@@ -603,14 +603,14 @@ const Profile = () => {
                             {t("profile:totalOrders")}
                           </div>
                         </div>
-                        <div className="text-center bg-green-50 p-6 rounded-xl">
+                        {/* <div className="text-center bg-green-50 p-6 rounded-xl">
                           <div className="text-3xl font-bold text-green-600 mb-2">
                             {profileData?.rate || "0.0"}
                           </div>
                           <div className="text-gray-700 font-medium">
                             {t("profile:customerRating")}
                           </div>
-                        </div>
+                        </div> */}
                         <div className="text-center bg-purple-50 p-6 rounded-xl">
                           <div className="text-3xl font-bold text-purple-600 mb-2">
                             ${profileData?.total_spent || "0.00"}
