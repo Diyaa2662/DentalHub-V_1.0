@@ -18,45 +18,6 @@ import { Link } from "react-router-dom";
 const About = () => {
   const { t } = useTranslation(["common", "about"]);
 
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Dr. Erik Svensson",
-      position: t("about:team_chiefDentist"),
-      description: t("about:team_chiefDentist_desc"),
-      experience: "15+ " + t("about:yearsExperience"),
-      image:
-        "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Dr. Sara Johansson",
-      position: t("about:team_orthodontist"),
-      description: t("about:team_orthodontist_desc"),
-      experience: "12+ " + t("about:yearsExperience"),
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop",
-    },
-    {
-      id: 3,
-      name: "Dr. Omar El-Sayed",
-      position: t("about:team_equipmentSpecialist"),
-      description: t("about:team_equipmentSpecialist_desc"),
-      experience: "10+ " + t("about:yearsExperience"),
-      image:
-        "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop",
-    },
-    {
-      id: 4,
-      name: "Dr. Lisa Andersson",
-      position: t("about:team_customerService"),
-      description: t("about:team_customerService_desc"),
-      experience: "8+ " + t("about:yearsExperience"),
-      image:
-        "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop",
-    },
-  ];
-
   const milestones = [
     {
       year: "2010",
@@ -233,52 +194,6 @@ const About = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* فريقنا */}
-        <div className="mb-20">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
-            {t("about:meetOurTeam")}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 group hover:shadow-xl transition-all duration-300"
-              >
-                {/* صورة العضو */}
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Team+Member";
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-
-                {/* معلومات العضو */}
-                <div className="p-6">
-                  <h4 className="text-xl font-bold text-gray-900 mb-1">
-                    {member.name}
-                  </h4>
-                  <p className="text-blue-600 font-medium mb-3">
-                    {member.position}
-                  </p>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {member.description}
-                  </p>
-                  <div className="flex items-center text-gray-500 text-sm">
-                    <FaAward className="mr-2 text-yellow-500" />
-                    <span className="font-medium">{member.experience}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 

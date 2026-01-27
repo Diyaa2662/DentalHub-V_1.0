@@ -255,9 +255,21 @@ const Home = () => {
   };
 
   // دالة لتحديد سعر العرض الصحيح
+  // دالة لتحديد سعر العرض الصحيح - مع إضافة حالة المنتج المجاني
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
+
+    // ⭐⭐⭐ حالة المنتج المجاني (discount_price = 0) ⭐⭐⭐
+    if (discountPrice === 0 && price > 0) {
+      return {
+        displayPrice: 0,
+        originalPrice: price,
+        hasDiscount: true,
+        discountPercentage: 100,
+        isFree: true, // ⬅️ العلم الجديد للإشارة أن المنتج مجاني
+      };
+    }
 
     // إذا كان discount_price موجود وأقل من price وأكبر من 0
     if (discountPrice > 0 && discountPrice < price) {
@@ -266,6 +278,7 @@ const Home = () => {
         originalPrice: price,
         hasDiscount: true,
         discountPercentage: Math.round(((price - discountPrice) / price) * 100),
+        isFree: false,
       };
     }
 
@@ -275,6 +288,7 @@ const Home = () => {
       originalPrice: null,
       hasDiscount: false,
       discountPercentage: 0,
+      isFree: false,
     };
   };
 
@@ -385,17 +399,36 @@ const Home = () => {
                           {productDescription}
                         </p>
                         <div className="flex flex-wrap items-center mb-4 md:mb-6">
-                          <span className="text-2xl sm:text-3xl md:text-4xl font-bold mr-2 md:mr-4">
-                            ${priceInfo.displayPrice.toFixed(2)}
-                          </span>
-                          {priceInfo.hasDiscount && (
-                            <>
-                              <span className="text-base sm:text-lg md:text-xl line-through text-gray-300 mr-2 md:mr-4">
+                          {priceInfo.isFree ? (
+                            <div className="flex flex-col">
+                              <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-500 mr-2 md:mr-4">
+                                {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                              </span>
+                              <span className="text-lg sm:text-xl md:text-2xl line-through text-gray-300">
                                 ${priceInfo.originalPrice.toFixed(2)}
                               </span>
-                              <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
-                                -{priceInfo.discountPercentage}%
+                              <span className="text-green-400 text-sm sm:text-base mt-1">
+                                {i18n.language === "sv"
+                                  ? "Begränsad tidserbjudande"
+                                  : "Limited Time Offer"}
                               </span>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold mr-2 md:mr-4">
+                                ${priceInfo.displayPrice.toFixed(2)}
+                              </span>
+                              {priceInfo.hasDiscount &&
+                                priceInfo.displayPrice > 0 && (
+                                  <>
+                                    <span className="text-base sm:text-lg md:text-xl line-through text-gray-300 mr-2 md:mr-4">
+                                      ${priceInfo.originalPrice.toFixed(2)}
+                                    </span>
+                                    <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
+                                      -{priceInfo.discountPercentage}%
+                                    </span>
+                                  </>
+                                )}
                             </>
                           )}
                         </div>
@@ -560,14 +593,30 @@ const Home = () => {
                           </div>
                         )}
 
-                        {/* علامة الخصم - جذابة */}
+                        {/* علامة الخصم أو المنتج المجاني */}
                         {priceInfo.hasDiscount && (
                           <div className="absolute top-3 left-3">
                             <div className="relative">
-                              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
-                                -{priceInfo.discountPercentage}%
+                              <div
+                                className={`text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg ${
+                                  priceInfo.isFree
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : "bg-gradient-to-r from-red-500 to-red-600"
+                                }`}
+                              >
+                                {priceInfo.isFree
+                                  ? i18n.language === "sv"
+                                    ? "GRATIS"
+                                    : "FREE"
+                                  : `-${priceInfo.discountPercentage}%`}
                               </div>
-                              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-600 rotate-45"></div>
+                              <div
+                                className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 ${
+                                  priceInfo.isFree
+                                    ? "bg-green-600"
+                                    : "bg-red-600"
+                                } rotate-45`}
+                              ></div>
                             </div>
                           </div>
                         )}
@@ -595,13 +644,32 @@ const Home = () => {
                         {/* السعر */}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
-                            <span className="text-xl font-bold text-blue-600">
-                              ${priceInfo.displayPrice.toFixed(2)}
-                            </span>
-                            {priceInfo.hasDiscount && (
-                              <span className="text-gray-400 line-through text-sm ml-2">
-                                ${priceInfo.originalPrice.toFixed(2)}
-                              </span>
+                            {priceInfo.isFree ? (
+                              <div className="flex flex-col">
+                                <span className="text-2xl font-bold text-green-600">
+                                  {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                                </span>
+                                <span className="text-gray-400 line-through text-sm">
+                                  ${priceInfo.originalPrice.toFixed(2)}
+                                </span>
+                                <span className="text-xs text-green-500 font-medium mt-1">
+                                  {i18n.language === "sv"
+                                    ? "Begränsad erbjudande"
+                                    : "Limited Offer"}
+                                </span>
+                              </div>
+                            ) : (
+                              <>
+                                <span className="text-xl font-bold text-blue-600">
+                                  ${priceInfo.displayPrice.toFixed(2)}
+                                </span>
+                                {priceInfo.hasDiscount &&
+                                  priceInfo.displayPrice > 0 && (
+                                    <span className="text-gray-400 line-through text-sm ml-2">
+                                      ${priceInfo.originalPrice.toFixed(2)}
+                                    </span>
+                                  )}
+                              </>
                             )}
                           </div>
                           {/* زر إضافة للسلة */}

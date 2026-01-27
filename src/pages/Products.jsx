@@ -300,20 +300,35 @@ const Products = () => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
 
+    // ⭐⭐⭐ حالة المنتج المجاني (discount_price = 0) ⭐⭐⭐
+    if (discountPrice === 0 && price > 0) {
+      return {
+        displayPrice: 0,
+        originalPrice: price,
+        hasDiscount: true,
+        discountPercentage: 100,
+        isFree: true, // ⬅️ العلم الجديد للإشارة أن المنتج مجاني
+      };
+    }
+
+    // إذا كان discount_price موجود وأقل من price وأكبر من 0
     if (discountPrice > 0 && discountPrice < price) {
       return {
         displayPrice: discountPrice,
         originalPrice: price,
         hasDiscount: true,
         discountPercentage: Math.round(((price - discountPrice) / price) * 100),
+        isFree: false,
       };
     }
 
+    // إذا كان discount_price = 0 أو يساوي price أو أكبر من price
     return {
       displayPrice: price,
       originalPrice: null,
       hasDiscount: false,
       discountPercentage: 0,
+      isFree: false,
     };
   };
 
@@ -618,8 +633,27 @@ const Products = () => {
                           {/* علامة الخصم فقط */}
                           {priceInfo.hasDiscount && (
                             <div className="absolute top-3 left-3">
-                              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
-                                -{priceInfo.discountPercentage}%
+                              <div className="relative">
+                                <div
+                                  className={`text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg ${
+                                    priceInfo.isFree
+                                      ? "bg-gradient-to-r from-green-500 to-green-600"
+                                      : "bg-gradient-to-r from-red-500 to-red-600"
+                                  }`}
+                                >
+                                  {priceInfo.isFree
+                                    ? i18n.language === "sv"
+                                      ? "GRATIS"
+                                      : "FREE"
+                                    : `-${priceInfo.discountPercentage}%`}
+                                </div>
+                                <div
+                                  className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 ${
+                                    priceInfo.isFree
+                                      ? "bg-green-600"
+                                      : "bg-red-600"
+                                  } rotate-45`}
+                                ></div>
                               </div>
                             </div>
                           )}
@@ -647,13 +681,32 @@ const Products = () => {
                           {/* السعر */}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center">
-                              <span className="text-xl font-bold text-blue-600">
-                                ${priceInfo.displayPrice.toFixed(2)}
-                              </span>
-                              {priceInfo.hasDiscount && (
-                                <span className="text-gray-400 line-through text-sm ml-2">
-                                  ${priceInfo.originalPrice.toFixed(2)}
-                                </span>
+                              {priceInfo.isFree ? (
+                                <div className="flex flex-col">
+                                  <span className="text-2xl font-bold text-green-600">
+                                    {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                                  </span>
+                                  <span className="text-gray-400 line-through text-sm">
+                                    ${priceInfo.originalPrice.toFixed(2)}
+                                  </span>
+                                  <span className="text-xs text-green-500 font-medium mt-1">
+                                    {i18n.language === "sv"
+                                      ? "Begränsad erbjudande"
+                                      : "Limited Offer"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="text-xl font-bold text-blue-600">
+                                    ${priceInfo.displayPrice.toFixed(2)}
+                                  </span>
+                                  {priceInfo.hasDiscount &&
+                                    priceInfo.displayPrice > 0 && (
+                                      <span className="text-gray-400 line-through text-sm ml-2">
+                                        ${priceInfo.originalPrice.toFixed(2)}
+                                      </span>
+                                    )}
+                                </>
                               )}
                             </div>
                             {/* زر السلة */}
