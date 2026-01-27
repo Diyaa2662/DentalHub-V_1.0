@@ -1,4 +1,4 @@
-// src/pages/Home.jsx - النسخة المعدلة مع إضافة باراميتر lang وإضافة للسلة
+// src/pages/Home.jsx - النسخة المعدلة مع إصلاح جميع المشاكل
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [sliderProducts, setSliderProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   // حالة للتنبيهات
   const [notification, setNotification] = useState({
@@ -32,11 +33,61 @@ const Home = () => {
 
   // Refs for scrollable sections
   const categoryRefs = useRef({});
+  const autoSlideInterval = useRef(null);
 
   useEffect(() => {
     fetchHomeData();
+
+    // الكشف عن حجم الشاشة
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      // تنظيف الـ interval عند إلغاء التثبيت
+      if (autoSlideInterval.current) {
+        clearInterval(autoSlideInterval.current);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i18n.language]); // أضف i18n.language كمتابع
+
+  // بدء التمرير التلقائي بعد تحميل البيانات
+  useEffect(() => {
+    if (sliderProducts.length > 0) {
+      startAutoSlide();
+    }
+
+    return () => {
+      if (autoSlideInterval.current) {
+        clearInterval(autoSlideInterval.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sliderProducts.length]);
+
+  const startAutoSlide = () => {
+    // تنظيف أي interval موجود مسبقاً
+    if (autoSlideInterval.current) {
+      clearInterval(autoSlideInterval.current);
+    }
+
+    // بدء interval جديد
+    autoSlideInterval.current = setInterval(() => {
+      nextSlide();
+    }, 5000);
+  };
+
+  const stopAutoSlide = () => {
+    if (autoSlideInterval.current) {
+      clearInterval(autoSlideInterval.current);
+      autoSlideInterval.current = null;
+    }
+  };
 
   const fetchHomeData = async () => {
     try {
@@ -173,17 +224,25 @@ const Home = () => {
     }
   };
 
-  // وظائف السلايدر
+  // وظائف السلايدر - معدلة لإصلاح المشكلة
   const nextSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === sliderProducts.length - 1 ? 0 : prev + 1,
-    );
+    setCurrentSlide((prev) => {
+      if (prev === sliderProducts.length - 1) {
+        return 0;
+      } else {
+        return prev + 1;
+      }
+    });
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === 0 ? sliderProducts.length - 1 : prev - 1,
-    );
+    setCurrentSlide((prev) => {
+      if (prev === 0) {
+        return sliderProducts.length - 1;
+      } else {
+        return prev - 1;
+      }
+    });
   };
 
   // وظائف التمرير للفئات
@@ -240,34 +299,45 @@ const Home = () => {
     return product.name || t("common:noName");
   };
 
-  // دالة للحصول على الوصف المناسب حسب اللغة
-  const getProductDescription = (product) => {
+  // دالة للحصول على الوصف المناسب حسب اللغة - مع قص للوصف في الموبايل (5 كلمات فقط)
+  const getProductDescription = (product, forMobile = false) => {
+    let description = "";
+
     // إذا كانت اللغة سويدية وكان هناك s_description
     if (
       i18n.language === "sv" &&
       product.s_description &&
       product.s_description.trim() !== ""
     ) {
-      return product.s_description;
+      description = product.s_description;
+    } else {
+      description = product.description || t("home:hero_subtitle");
     }
-    // وإلا نعرض description
-    return product.description || t("home:hero_subtitle");
+
+    // قص الوصف إذا كان لشاشة الموبايل (5 كلمات فقط)
+    if (forMobile && isMobile) {
+      const words = description.split(" ");
+      if (words.length > 5) {
+        return words.slice(0, 5).join(" ") + "...";
+      }
+    }
+
+    return description;
   };
 
   // دالة لتحديد سعر العرض الصحيح
-  // دالة لتحديد سعر العرض الصحيح - مع إضافة حالة المنتج المجاني
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
 
-    // ⭐⭐⭐ حالة المنتج المجاني (discount_price = 0) ⭐⭐⭐
+    // حالة المنتج المجاني (discount_price = 0)
     if (discountPrice === 0 && price > 0) {
       return {
         displayPrice: 0,
         originalPrice: price,
         hasDiscount: true,
         discountPercentage: 100,
-        isFree: true, // ⬅️ العلم الجديد للإشارة أن المنتج مجاني
+        isFree: true,
       };
     }
 
@@ -370,139 +440,242 @@ const Home = () => {
         </div>
       )}
 
-      {/* السلايدر - معدل مع padding-top لمنع التداخل */}
-      <section className="relative pt-12 md:pt-0 md:h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200">
+      {/* السلايدر - معدل بشكل كامل */}
+      <section
+        className="relative pt-16 md:pt-0 md:h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200"
+        onMouseEnter={stopAutoSlide}
+        onMouseLeave={startAutoSlide}
+      >
         {sliderProducts.length > 0 ? (
           <div className="relative w-full h-full">
-            {/* حاوية السلايدر */}
-            <div
-              className="flex transition-transform duration-500 ease-in-out h-full"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {sliderProducts.map((product, index) => {
-                const priceInfo = getDisplayPrice(product);
-                const productName = getProductName(product);
-                const productDescription = getProductDescription(product);
+            {/* حاوية السلايدر الرئيسية */}
+            <div className="h-full">
+              <div
+                className="flex transition-transform duration-500 ease-in-out h-full"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {sliderProducts.map((product, index) => {
+                  const priceInfo = getDisplayPrice(product);
+                  const productName = getProductName(product);
+                  const productDescription = getProductDescription(
+                    product,
+                    true,
+                  ); // وصف معدل للموبايل
 
-                return (
-                  <div
-                    key={product.id}
-                    className="min-w-full h-full flex-shrink-0 flex items-center"
-                  >
-                    <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between h-full">
-                      {/* النص - مع تعديل المسافة للهواتف */}
-                      <div className="w-full md:w-1/2 text-white mb-6 md:mb-0 px-4 md:px-0 mt-4 md:mt-0">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
-                          {productName}
-                        </h2>
-                        <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 md:mb-6 opacity-90 line-clamp-2 md:line-clamp-3">
-                          {productDescription}
-                        </p>
-                        <div className="flex flex-wrap items-center mb-4 md:mb-6">
-                          {priceInfo.isFree ? (
-                            <div className="flex flex-col">
-                              <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-500 mr-2 md:mr-4">
-                                {i18n.language === "sv" ? "GRATIS" : "FREE"}
-                              </span>
-                              <span className="text-lg sm:text-xl md:text-2xl line-through text-gray-300">
-                                ${priceInfo.originalPrice.toFixed(2)}
-                              </span>
-                              <span className="text-green-400 text-sm sm:text-base mt-1">
-                                {i18n.language === "sv"
-                                  ? "Begränsad tidserbjudande"
-                                  : "Limited Time Offer"}
-                              </span>
-                            </div>
-                          ) : (
-                            <>
-                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold mr-2 md:mr-4">
-                                ${priceInfo.displayPrice.toFixed(2)}
-                              </span>
-                              {priceInfo.hasDiscount &&
-                                priceInfo.displayPrice > 0 && (
-                                  <>
-                                    <span className="text-base sm:text-lg md:text-xl line-through text-gray-300 mr-2 md:mr-4">
-                                      ${priceInfo.originalPrice.toFixed(2)}
-                                    </span>
-                                    <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
-                                      -{priceInfo.discountPercentage}%
-                                    </span>
-                                  </>
-                                )}
-                            </>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2 md:gap-3">
-                          <Link
-                            to={`/product/${product.id}`}
-                            className="inline-flex items-center bg-white text-blue-600 px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm sm:text-base"
-                          >
-                            <FaEye className="mr-1 sm:mr-2" />{" "}
-                            {t("common:viewDetails")}
-                          </Link>
-                          <button
-                            onClick={() => handleAddToCart(product.id)}
-                            className="inline-flex items-center bg-green-600 text-white px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm sm:text-base"
-                          >
-                            <FaShoppingCart className="mr-1 sm:mr-2" />{" "}
-                            {t("common:addToCart")}
-                          </button>
-                        </div>
-                      </div>
+                  return (
+                    <div
+                      key={product.id}
+                      className="min-w-full h-full flex-shrink-0"
+                    >
+                      {/* تصميم مختلف للهواتف */}
+                      {isMobile ? (
+                        // تصميم الموبايل - عمودي
+                        <div className="h-full flex flex-col items-center justify-center px-4 py-8">
+                          {/* الصورة في الأعلى */}
+                          <div className="w-full max-w-xs mb-6">
+                            {product.images && product.images[0] ? (
+                              <img
+                                src={getFullImageUrl(product.images[0].url)}
+                                alt={productName}
+                                className="rounded-lg shadow-xl w-full h-auto object-contain max-h-56"
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-40 bg-white/20 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-base px-4 text-center">
+                                  {i18n.language === "sv"
+                                    ? "Ingen bild tillgänglig"
+                                    : "No image available"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
 
-                      {/* الصورة - مع تعديل المسافة */}
-                      <div className="w-full md:w-1/2 flex justify-center items-center px-4 md:px-0 mt-2 md:mt-0">
-                        <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-                          {product.images && product.images[0] ? (
-                            <img
-                              src={getFullImageUrl(product.images[0].url)}
-                              alt={productName}
-                              className="rounded-lg shadow-xl w-full h-auto object-contain max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-80"
-                              onError={(e) => {
-                                e.target.src =
-                                  "https://via.placeholder.com/600x400/3B82F6/FFFFFF?text=No+Image";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64 bg-white/20 rounded-lg flex items-center justify-center">
-                              <span className="text-white text-sm sm:text-base md:text-lg lg:text-xl px-4 text-center">
-                                {i18n.language === "sv"
-                                  ? "Ingen bild tillgänglig"
-                                  : t("product:noImages")}
-                              </span>
+                          {/* المحتوى النصي */}
+                          <div className="w-full text-white text-center px-2">
+                            <h2 className="text-2xl font-bold mb-3 line-clamp-2">
+                              {productName}
+                            </h2>
+                            <p className="text-sm mb-4 opacity-90 line-clamp-2 px-2">
+                              {productDescription}
+                            </p>
+
+                            {/* السعر */}
+                            <div className="flex flex-col items-center justify-center mb-4">
+                              {priceInfo.isFree ? (
+                                <div className="flex flex-col items-center">
+                                  <span className="text-3xl font-bold text-green-500">
+                                    {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                                  </span>
+                                  <span className="text-base line-through text-gray-300 mt-1">
+                                    $
+                                    {priceInfo.originalPrice?.toFixed(2) ||
+                                      "0.00"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center">
+                                  <span className="text-2xl font-bold">
+                                    ${priceInfo.displayPrice.toFixed(2)}
+                                  </span>
+                                  {priceInfo.hasDiscount &&
+                                    priceInfo.displayPrice > 0 && (
+                                      <div className="flex items-center mt-1">
+                                        <span className="text-base line-through text-gray-300 mr-2">
+                                          ${priceInfo.originalPrice.toFixed(2)}
+                                        </span>
+                                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                          -{priceInfo.discountPercentage}%
+                                        </span>
+                                      </div>
+                                    )}
+                                </div>
+                              )}
                             </div>
-                          )}
+
+                            {/* الأزرار */}
+                            <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
+                              <Link
+                                to={`/product/${product.id}`}
+                                className="inline-flex items-center justify-center bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm"
+                              >
+                                <FaEye className="mr-2" />{" "}
+                                {t("common:viewDetails")}
+                              </Link>
+                              <button
+                                onClick={() => handleAddToCart(product.id)}
+                                className="inline-flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm"
+                              >
+                                <FaShoppingCart className="mr-2" />{" "}
+                                {t("common:addToCart")}
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        // تصميم سطح المكتب - أفقي
+                        <div className="container mx-auto px-4 h-full flex items-center justify-between">
+                          {/* النص */}
+                          <div className="w-1/2 text-white pr-8">
+                            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+                              {productName}
+                            </h2>
+                            <p className="text-lg lg:text-xl mb-6 opacity-90 line-clamp-3">
+                              {getProductDescription(product, false)}
+                            </p>
+                            <div className="flex flex-wrap items-center mb-6">
+                              {priceInfo.isFree ? (
+                                <div className="flex flex-col">
+                                  <span className="text-5xl font-bold text-green-500 mr-4">
+                                    {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                                  </span>
+                                  <span className="text-2xl line-through text-gray-300">
+                                    $
+                                    {priceInfo.originalPrice?.toFixed(2) ||
+                                      "0.00"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="text-4xl font-bold mr-4">
+                                    ${priceInfo.displayPrice.toFixed(2)}
+                                  </span>
+                                  {priceInfo.hasDiscount &&
+                                    priceInfo.displayPrice > 0 && (
+                                      <>
+                                        <span className="text-xl line-through text-gray-300 mr-4">
+                                          ${priceInfo.originalPrice.toFixed(2)}
+                                        </span>
+                                        <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                          -{priceInfo.discountPercentage}%
+                                        </span>
+                                      </>
+                                    )}
+                                </>
+                              )}
+                            </div>
+                            <div className="flex gap-3">
+                              <Link
+                                to={`/product/${product.id}`}
+                                className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                              >
+                                <FaEye className="mr-2" />{" "}
+                                {t("common:viewDetails")}
+                              </Link>
+                              <button
+                                onClick={() => handleAddToCart(product.id)}
+                                className="inline-flex items-center bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+                              >
+                                <FaShoppingCart className="mr-2" />{" "}
+                                {t("common:addToCart")}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* الصورة */}
+                          <div className="w-1/2 flex justify-center">
+                            <div className="max-w-lg">
+                              {product.images && product.images[0] ? (
+                                <img
+                                  src={getFullImageUrl(product.images[0].url)}
+                                  alt={productName}
+                                  className="rounded-lg shadow-xl w-full h-auto object-contain max-h-80"
+                                  onError={(e) => {
+                                    e.target.src =
+                                      "https://via.placeholder.com/600x400/3B82F6/FFFFFF?text=No+Image";
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-64 bg-white/20 rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-xl">
+                                    {i18n.language === "sv"
+                                      ? "Ingen bild tillgänglig"
+                                      : "No image available"}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
-            {/* أزرار التحكم */}
+            {/* أزرار التحكم - تظهر في جميع الشاشات */}
             <button
               onClick={prevSlide}
-              className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
+              className={`absolute top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10 ${
+                isMobile ? "left-2" : "left-4"
+              }`}
               aria-label="Previous Slide"
             >
-              <FaChevronLeft className="text-sm sm:text-base" />
+              <FaChevronLeft className={isMobile ? "text-sm" : ""} />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10"
+              className={`absolute top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10 ${
+                isMobile ? "right-2" : "right-4"
+              }`}
               aria-label="Next Slide"
             >
-              <FaChevronRight className="text-sm sm:text-base" />
+              <FaChevronRight className={isMobile ? "text-sm" : ""} />
             </button>
 
-            {/* النقاط */}
-            <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2 z-10">
+            {/* النقاط - دائماً موجودة */}
+            <div
+              className={`absolute ${isMobile ? "bottom-4" : "bottom-8"} left-1/2 transform -translate-x-1/2 flex space-x-2 z-10`}
+            >
               {sliderProducts.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
+                  className={`${isMobile ? "w-2 h-2" : "w-3 h-3"} rounded-full transition-colors ${
                     index === currentSlide
                       ? "bg-white"
                       : "bg-white/50 hover:bg-white/70"
@@ -513,7 +686,7 @@ const Home = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-white text-lg sm:text-xl md:text-2xl px-4 text-center pt-12 md:pt-0">
+          <div className="flex items-center justify-center h-full text-white text-2xl px-4 text-center pt-16 md:pt-0">
             {t("common:noProducts")}
           </div>
         )}
@@ -650,7 +823,9 @@ const Home = () => {
                                   {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                 </span>
                                 <span className="text-gray-400 line-through text-sm">
-                                  ${priceInfo.originalPrice.toFixed(2)}
+                                  $
+                                  {priceInfo.originalPrice?.toFixed(2) ||
+                                    "0.00"}
                                 </span>
                                 <span className="text-xs text-green-500 font-medium mt-1">
                                   {i18n.language === "sv"
@@ -702,7 +877,7 @@ const Home = () => {
             <p className="text-gray-500 mt-2">
               {i18n.language === "sv"
                 ? "Inga kategorier med produkter hittades"
-                : t("home:noCategoriesFound")}
+                : "No categories with products found"}
             </p>
           </div>
         )}
@@ -756,6 +931,23 @@ const Home = () => {
 
   .animate-fade-in-down {
     animation: fadeInDown 0.3s ease-out;
+  }
+
+  /* تحسينات للهواتف */
+  @media (max-width: 768px) {
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    
+    .line-clamp-3 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
   }
 `}</style>
     </div>
