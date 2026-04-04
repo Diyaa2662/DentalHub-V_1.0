@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Base URL
-const BASE_URL = 'https://nethy-production.up.railway.app/api';
+const BASE_URL = "https://nethy.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -12,21 +12,21 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const isFormData = config.data instanceof FormData;
-    
+
     if (!isFormData) {
-      config.headers['Content-Type'] = 'application/json';
+      config.headers["Content-Type"] = "application/json";
     }
-    
-    const token = localStorage.getItem('authToken');
+
+    const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor
@@ -37,20 +37,20 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status } = error.response;
-      
+
       if (status === 401) {
-        console.error('Session expired');
+        console.error("Session expired");
       } else if (status === 403) {
-        console.error('No permission');
+        console.error("No permission");
       } else if (status === 404) {
-        console.error('Not found');
+        console.error("Not found");
       } else if (status === 422) {
-        console.error('Validation error');
+        console.error("Validation error");
       }
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
