@@ -1,4 +1,4 @@
-// src/pages/SearchResults.jsx - صفحة نتائج البحث
+// src/pages/SearchResults.jsx - صفحة نتائج البحث (معدلة - إزالة فلترة التوفر)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import {
   FaSortAmountDown,
   FaSortAmountUp,
   FaTimes,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const SearchResults = () => {
@@ -26,8 +27,14 @@ const SearchResults = () => {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("relevance"); // relevance, price_low, price_high, rating, newest
-  const [filterInStock, setFilterInStock] = useState(false);
   const [addingToCart, setAddingToCart] = useState({});
+
+  // حالة للتنبيهات
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
 
   useEffect(() => {
     // استخراج query parameter من الرابط
@@ -43,6 +50,23 @@ const SearchResults = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
+
+  // دالة لإظهار التنبيه
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      show: true,
+      message,
+      type,
+    });
+
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: "",
+        type: "success",
+      });
+    }, 3000);
+  };
 
   const performSearch = async (query) => {
     try {
@@ -67,16 +91,11 @@ const SearchResults = () => {
     }
   };
 
-  // فلترة وترتيب النتائج
+  // فلترة وترتيب النتائج (بدون فلترة التوفر)
   const getFilteredAndSortedResults = () => {
     let results = [...searchResults];
 
-    // فلترة حسب التوفر
-    if (filterInStock) {
-      results = results.filter((product) => product.status === "instock");
-    }
-
-    // ترتيب النتائج
+    // ترتيب النتائج فقط - بدون فلترة حسب التوفر
     switch (sortBy) {
       case "price_low":
         results.sort((a, b) => {
@@ -127,12 +146,12 @@ const SearchResults = () => {
   const handleAddToCart = async (productId, productName) => {
     const token = localStorage.getItem("customerToken");
     if (!token) {
-      alert(
+      showNotification(
         i18n.language === "sv"
           ? "Vänligen logga in för att lägga till produkter i varukorgen"
           : "Please login to add items to cart",
+        "error",
       );
-      navigate("/login");
       return;
     }
 
@@ -153,11 +172,12 @@ const SearchResults = () => {
         },
       );
 
-      alert(
+      showNotification(
         response.data?.message ||
           (i18n.language === "sv"
             ? `${productName} har lagts till i varukorgen`
             : `${productName} added to cart successfully`),
+        "success",
       );
     } catch (err) {
       console.error("❌ Error adding to cart:", err);
@@ -165,13 +185,22 @@ const SearchResults = () => {
       if (err.response?.status === 401) {
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
-        navigate("/login");
+        showNotification(
+          i18n.language === "sv"
+            ? "Din session har gått ut. Var vänlig logga in igen"
+            : "Your session has expired. Please login again",
+          "error",
+        );
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
       } else {
-        alert(
+        showNotification(
           err.response?.data?.message ||
             (i18n.language === "sv"
               ? "Kunde inte lägga till produkten i varukorgen"
               : "Could not add product to cart"),
+          "error",
         );
       }
     } finally {
@@ -179,10 +208,10 @@ const SearchResults = () => {
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل
+  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) {
-      return "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+      return null;
     }
 
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -190,10 +219,14 @@ const SearchResults = () => {
     }
 
     if (imageUrl.startsWith("/")) {
-      return `https://nethy-production.up.railway.app${imageUrl}`;
+      return `https://nethy.onrender.com${imageUrl}`;
     }
 
-    return `https://nethy-production.up.railway.app/${imageUrl}`;
+    if (imageUrl.startsWith("storage/")) {
+      return `https://nethy.onrender.com/${imageUrl}`;
+    }
+
+    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   // دالة للحصول على اسم المنتج حسب اللغة
@@ -208,10 +241,21 @@ const SearchResults = () => {
     return product.name || t("common:noName");
   };
 
-  // دالة لتحديد سعر العرض الصحيح
+  // دالة لتحديد سعر العرض الصحيح - مع دعم المنتجات المجانية
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
+
+    // حالة المنتج المجاني
+    if (discountPrice === 0 && price > 0) {
+      return {
+        displayPrice: 0,
+        originalPrice: price,
+        hasDiscount: true,
+        discountPercentage: 100,
+        isFree: true,
+      };
+    }
 
     if (discountPrice > 0 && discountPrice < price) {
       return {
@@ -219,6 +263,7 @@ const SearchResults = () => {
         originalPrice: price,
         hasDiscount: true,
         discountPercentage: Math.round(((price - discountPrice) / price) * 100),
+        isFree: false,
       };
     }
 
@@ -227,6 +272,7 @@ const SearchResults = () => {
       originalPrice: null,
       hasDiscount: false,
       discountPercentage: 0,
+      isFree: false,
     };
   };
 
@@ -262,6 +308,36 @@ const SearchResults = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* تنبيهات */}
+      {notification.show && (
+        <div
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
+        >
+          <div className="flex items-start">
+            <div
+              className={`flex-shrink-0 ${
+                notification.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <FaCheckCircle className="text-lg" />
+              ) : (
+                <FaExclamationTriangle className="text-lg" />
+              )}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* الهيدر */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
@@ -374,13 +450,10 @@ const SearchResults = () => {
                   <h2 className="text-xl font-bold text-gray-900">
                     {t("search:filterResults")}
                   </h2>
-                  {(filterInStock || sortBy !== "relevance") && (
+                  {sortBy !== "relevance" && (
                     <button
-                      onClick={() => {
-                        setFilterInStock(false);
-                        setSortBy("relevance");
-                      }}
-                      className="text-sm text-red-600 hover:text-red-800"
+                      onClick={() => setSortBy("relevance")}
+                      className="text-sm text-red-600 hover:text-red-800 flex items-center"
                     >
                       <FaTimes className="mr-1" />
                       {t("search:resetAll")}
@@ -388,7 +461,7 @@ const SearchResults = () => {
                   )}
                 </div>
 
-                {/* الترتيب */}
+                {/* الترتيب فقط - تم إزالة قسم التوفر */}
                 <div className="mb-6">
                   <h3 className="font-bold text-gray-800 mb-3">
                     {t("search:sortBy")}
@@ -457,11 +530,6 @@ const SearchResults = () => {
                     <p>
                       {t("search:showing")}: {filteredResults.length}
                     </p>
-                    {filterInStock && (
-                      <p className="text-green-600">
-                        {t("search:filteredInStock")}
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -497,7 +565,7 @@ const SearchResults = () => {
                       key={product.id}
                       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group"
                     >
-                      {/* صورة المنتج */}
+                      {/* صورة المنتج - معدلة مع معالجة الأخطاء */}
                       <div className="relative h-48 bg-gray-100 overflow-hidden">
                         {product.images && product.images[0] ? (
                           <>
@@ -506,8 +574,15 @@ const SearchResults = () => {
                               alt={productName}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
-                                e.target.src =
-                                  "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                e.target.onerror = null;
+                                e.target.style.display = "none";
+                                const parent = e.target.parentElement;
+                                const fallback = document.createElement("div");
+                                fallback.className =
+                                  "w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200";
+                                fallback.innerHTML =
+                                  '<svg class="w-16 h-16 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+                                parent.appendChild(fallback);
                               }}
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
@@ -518,11 +593,30 @@ const SearchResults = () => {
                           </div>
                         )}
 
-                        {/* علامة الخصم */}
+                        {/* علامة الخصم أو المنتج المجاني */}
                         {priceInfo.hasDiscount && (
                           <div className="absolute top-3 left-3">
-                            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
-                              -{priceInfo.discountPercentage}%
+                            <div className="relative">
+                              <div
+                                className={`text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg ${
+                                  priceInfo.isFree
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : "bg-gradient-to-r from-red-500 to-red-600"
+                                }`}
+                              >
+                                {priceInfo.isFree
+                                  ? i18n.language === "sv"
+                                    ? "GRATIS"
+                                    : "FREE"
+                                  : `-${priceInfo.discountPercentage}%`}
+                              </div>
+                              <div
+                                className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 ${
+                                  priceInfo.isFree
+                                    ? "bg-green-600"
+                                    : "bg-red-600"
+                                } rotate-45`}
+                              ></div>
                             </div>
                           </div>
                         )}
@@ -550,13 +644,27 @@ const SearchResults = () => {
                         {/* السعر */}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
-                            <span className="text-xl font-bold text-blue-600">
-                              ${priceInfo.displayPrice.toFixed(2)}
-                            </span>
-                            {priceInfo.hasDiscount && (
-                              <span className="text-gray-400 line-through text-sm ml-2">
-                                ${priceInfo.originalPrice.toFixed(2)}
-                              </span>
+                            {priceInfo.isFree ? (
+                              <div className="flex flex-col">
+                                <span className="text-2xl font-bold text-green-600">
+                                  {i18n.language === "sv" ? "GRATIS" : "FREE"}
+                                </span>
+                                <span className="text-gray-400 line-through text-sm">
+                                  ${priceInfo.originalPrice.toFixed(2)}
+                                </span>
+                              </div>
+                            ) : (
+                              <>
+                                <span className="text-xl font-bold text-blue-600">
+                                  ${priceInfo.displayPrice.toFixed(2)}
+                                </span>
+                                {priceInfo.hasDiscount &&
+                                  priceInfo.displayPrice > 0 && (
+                                    <span className="text-gray-400 line-through text-sm ml-2">
+                                      ${priceInfo.originalPrice.toFixed(2)}
+                                    </span>
+                                  )}
+                              </>
                             )}
                           </div>
                           {/* زر السلة */}
@@ -600,6 +708,24 @@ const SearchResults = () => {
           </div>
         )}
       </div>
+
+      {/* CSS للأنيميشن */}
+      <style>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

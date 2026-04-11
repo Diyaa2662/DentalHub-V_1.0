@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة المعدلة مع إضافة للسلة
+// src/pages/ProductDetails.jsx - النسخة المعدلة (إزالة via.placeholder.com)
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -169,10 +169,10 @@ const ProductDetails = () => {
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل
+  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) {
-      return "https://via.placeholder.com/600x600/3B82F6/FFFFFF?text=No+Image";
+      return null;
     }
 
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -180,10 +180,14 @@ const ProductDetails = () => {
     }
 
     if (imageUrl.startsWith("/")) {
-      return `https://nethy-production.up.railway.app${imageUrl}`;
+      return `https://nethy.onrender.com${imageUrl}`;
     }
 
-    return `https://nethy-production.up.railway.app/${imageUrl}`;
+    if (imageUrl.startsWith("storage/")) {
+      return `https://nethy.onrender.com/${imageUrl}`;
+    }
+
+    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   // زيادة/تقليل الكمية
@@ -340,7 +344,7 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* قسم الصور */}
           <div className="space-y-4">
-            {/* الصورة الرئيسية */}
+            {/* الصورة الرئيسية - معدلة مع معالجة الأخطاء */}
             <div className="relative bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
               {product.images && product.images.length > 0 ? (
                 <>
@@ -351,8 +355,22 @@ const ProductDetails = () => {
                     alt={productName}
                     className="w-full h-[350px] object-contain p-4"
                     onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/600x600/3B82F6/FFFFFF?text=No+Image";
+                      e.target.onerror = null;
+                      e.target.style.display = "none";
+                      // إضافة fallback في حالة فشل تحميل الصورة
+                      const parent = e.target.parentElement;
+                      const fallback = document.createElement("div");
+                      fallback.className =
+                        "w-full h-[350px] flex items-center justify-center bg-gray-100";
+                      fallback.innerHTML = `
+                        <div class="text-center">
+                          <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                          </svg>
+                          <p class="text-gray-500">${t("product:noImage") || "No Image"}</p>
+                        </div>
+                      `;
+                      parent.appendChild(fallback);
                     }}
                   />
 
@@ -403,7 +421,7 @@ const ProductDetails = () => {
               )}
             </div>
 
-            {/* معرض الصور المصغرة */}
+            {/* معرض الصور المصغرة - معدل مع معالجة الأخطاء */}
             {product.images && product.images.length > 1 && (
               <div className="flex space-x-3 overflow-x-auto py-2">
                 {product.images.map((image, index) => (
@@ -421,8 +439,15 @@ const ProductDetails = () => {
                       alt={`${productName} - image ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src =
-                          "https://via.placeholder.com/100x100/3B82F6/FFFFFF?text=Thumb";
+                        e.target.onerror = null;
+                        e.target.style.display = "none";
+                        const parent = e.target.parentElement;
+                        const fallback = document.createElement("div");
+                        fallback.className =
+                          "w-full h-full flex items-center justify-center bg-gray-100";
+                        fallback.innerHTML =
+                          '<FaTag className="text-gray-400 text-2xl" />';
+                        parent.appendChild(fallback);
                       }}
                     />
                   </button>

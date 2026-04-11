@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة مع إضافة للسلة
+// src/pages/Products.jsx - النسخة المعدلة (إزالة via.placeholder.com)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -254,10 +254,10 @@ const Products = () => {
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل
+  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) {
-      return "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+      return null;
     }
 
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -265,10 +265,14 @@ const Products = () => {
     }
 
     if (imageUrl.startsWith("/")) {
-      return `https://nethy-production.up.railway.app${imageUrl}`;
+      return `https://nethy.onrender.com${imageUrl}`;
     }
 
-    return `https://nethy-production.up.railway.app/${imageUrl}`;
+    if (imageUrl.startsWith("storage/")) {
+      return `https://nethy.onrender.com/${imageUrl}`;
+    }
+
+    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   // دالة للحصول على اسم الفئة حسب اللغة
@@ -307,7 +311,7 @@ const Products = () => {
         originalPrice: price,
         hasDiscount: true,
         discountPercentage: 100,
-        isFree: true, // ⬅️ العلم الجديد للإشارة أن المنتج مجاني
+        isFree: true,
       };
     }
 
@@ -609,7 +613,7 @@ const Products = () => {
                         key={product.id}
                         className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group"
                       >
-                        {/* صورة المنتج */}
+                        {/* صورة المنتج - معدلة مع معالجة الأخطاء */}
                         <div className="relative h-48 bg-gray-100 overflow-hidden">
                           {product.images && product.images[0] ? (
                             <>
@@ -618,8 +622,17 @@ const Products = () => {
                                 alt={productName}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 onError={(e) => {
-                                  e.target.src =
-                                    "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                  e.target.onerror = null;
+                                  e.target.style.display = "none";
+                                  // إضافة fallback
+                                  const parent = e.target.parentElement;
+                                  const fallback =
+                                    document.createElement("div");
+                                  fallback.className =
+                                    "w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200";
+                                  fallback.innerHTML =
+                                    '<svg class="w-16 h-16 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+                                  parent.appendChild(fallback);
                                 }}
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />

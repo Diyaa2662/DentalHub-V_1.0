@@ -252,14 +252,13 @@ const LinksBar = () => {
                                   <img
                                     src={
                                       product.images[0].url.startsWith("/")
-                                        ? `https://nethy-production.up.railway.app${product.images[0].url}`
+                                        ? `https://nethy.onrender.com${product.images[0].url}`
                                         : product.images[0].url
                                     }
                                     alt={productName}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                      e.target.src =
-                                        "https://via.placeholder.com/50x50/3B82F6/FFFFFF?text=IMG";
+                                      e.target.src = "";
                                     }}
                                   />
                                 ) : (

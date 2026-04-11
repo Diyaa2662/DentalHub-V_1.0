@@ -1,4 +1,4 @@
-// src/pages/Home.jsx - النسخة المعدلة مع إصلاح جميع المشاكل
+// src/pages/Home.jsx - النسخة المعدلة مع هيكل البيانات الجديد
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ import {
 const Home = () => {
   const { t, i18n } = useTranslation(["home", "common"]);
   const navigate = useNavigate();
-  const [homeData, setHomeData] = useState([]);
+  const [categoriesData, setCategoriesData] = useState([]); // للفئات مع منتجاتها
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sliderProducts, setSliderProducts] = useState([]);
@@ -28,7 +28,7 @@ const Home = () => {
   const [notification, setNotification] = useState({
     show: false,
     message: "",
-    type: "success", // success, error, info
+    type: "success",
   });
 
   // Refs for scrollable sections
@@ -48,13 +48,12 @@ const Home = () => {
 
     return () => {
       window.removeEventListener("resize", checkMobile);
-      // تنظيف الـ interval عند إلغاء التثبيت
       if (autoSlideInterval.current) {
         clearInterval(autoSlideInterval.current);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i18n.language]); // أضف i18n.language كمتابع
+  }, [i18n.language]);
 
   // بدء التمرير التلقائي بعد تحميل البيانات
   useEffect(() => {
@@ -71,12 +70,10 @@ const Home = () => {
   }, [sliderProducts.length]);
 
   const startAutoSlide = () => {
-    // تنظيف أي interval موجود مسبقاً
     if (autoSlideInterval.current) {
       clearInterval(autoSlideInterval.current);
     }
 
-    // بدء interval جديد
     autoSlideInterval.current = setInterval(() => {
       nextSlide();
     }, 5000);
@@ -93,26 +90,28 @@ const Home = () => {
     try {
       setLoading(true);
 
-      // إضافة باراميتر lang بناءً على اللغة الحالية
       const langParam = i18n.language === "sv" ? "sv" : "en";
-
       const response = await api.get(`/mainpage?lang=${langParam}`);
 
-      // استخراج جميع المنتجات من كل الفئات
-      const allProducts = response.data.date.flatMap((cat) => cat.products);
+      // ✅ 1. معالجة السلايدر - عرض كل المنتجات بدون فلترة
+      const recommendedProducts = response.data.data.recommended_products || [];
 
-      // اختيار 5 منتجات للسلايدر (منتجات بصور متوفرة ومتوفرة بالمخزون)
-      const sliderItems = allProducts
-        .filter(
-          (product) =>
-            product.images &&
-            product.images.length > 0 &&
-            product.status === "instock",
-        )
-        .slice(0, 5);
+      // عرض كل المنتجات كما هي (حتى لو outofstock أو بدون صور)
+      // نأخذ كل المنتجات بدون filter وبدون slice
+      const sliderItems = recommendedProducts;
 
       setSliderProducts(sliderItems);
-      setHomeData(response.data.date.filter((cat) => cat.products.length > 0));
+
+      // ✅ 2. معالجة الفئات من top_products_by_categories
+      const categoriesWithProducts =
+        response.data.data.top_products_by_categories || [];
+
+      // فلترة الفئات التي لديها منتجات
+      const validCategories = categoriesWithProducts.filter(
+        (category) => category.products && category.products.length > 0,
+      );
+
+      setCategoriesData(validCategories);
     } catch (err) {
       setError(t("common:error"));
       console.error("Error fetching home data:", err);
@@ -121,7 +120,6 @@ const Home = () => {
     }
   };
 
-  // وظيفة لإظهار التنبيه
   const showNotification = (message, type = "success") => {
     setNotification({
       show: true,
@@ -129,7 +127,6 @@ const Home = () => {
       type,
     });
 
-    // إخفاء التنبيه بعد 3 ثواني
     setTimeout(() => {
       setNotification({
         show: false,
@@ -139,9 +136,7 @@ const Home = () => {
     }, 3000);
   };
 
-  // وظيفة إضافة منتج للسلة
   const handleAddToCart = async (productId) => {
-    // التحقق من تسجيل الدخول
     const token = localStorage.getItem("customerToken");
     if (!token) {
       showNotification(
@@ -158,7 +153,7 @@ const Home = () => {
         "/additemtoorder",
         {
           product_id: productId,
-          quantity: 1, // الكمية الافتراضية
+          quantity: 1,
         },
         {
           headers: {
@@ -190,7 +185,6 @@ const Home = () => {
       let errorMessage = "";
 
       if (err.response?.status === 401) {
-        // التوكن غير صالح
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
         errorMessage =
@@ -204,7 +198,6 @@ const Home = () => {
           navigate("/login");
         }, 1000);
       } else if (err.response?.status === 422) {
-        // خطأ في التحقق
         const errors = err.response.data.errors;
         const firstError = Object.values(errors)[0]?.[0];
         errorMessage =
@@ -224,7 +217,6 @@ const Home = () => {
     }
   };
 
-  // وظائف السلايدر - معدلة لإصلاح المشكلة
   const nextSlide = () => {
     setCurrentSlide((prev) => {
       if (prev === sliderProducts.length - 1) {
@@ -245,7 +237,6 @@ const Home = () => {
     });
   };
 
-  // وظائف التمرير للفئات
   const scrollLeft = (category) => {
     if (categoryRefs.current[category]) {
       categoryRefs.current[category].scrollBy({
@@ -264,10 +255,9 @@ const Home = () => {
     }
   };
 
-  // وظيفة لبناء رابط الصورة الكامل
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) {
-      return "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+      return null;
     }
 
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -275,19 +265,17 @@ const Home = () => {
     }
 
     if (imageUrl.startsWith("/")) {
-      return `https://nethy-production.up.railway.app${imageUrl}`;
+      return `https://nethy.onrender.com${imageUrl}`;
     }
 
     if (imageUrl.startsWith("storage/")) {
-      return `https://nethy-production.up.railway.app/${imageUrl}`;
+      return `https://nethy.onrender.com/${imageUrl}`;
     }
 
-    return `https://nethy-production.up.railway.app/${imageUrl}`;
+    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
-  // دالة للحصول على الاسم المناسب حسب اللغة
   const getProductName = (product) => {
-    // إذا كانت اللغة سويدية وكان هناك s_name
     if (
       i18n.language === "sv" &&
       product.s_name &&
@@ -295,23 +283,28 @@ const Home = () => {
     ) {
       return product.s_name;
     }
-    // وإلا نعرض name
     return product.name || t("common:noName");
   };
 
-  // دالة للحصول على الوصف المناسب حسب اللغة - مع قص للوصف في الموبايل (5 كلمات فقط)
+  // دالة للوصف - تبحث في الحقول المتاحة
   const getProductDescription = (product, forMobile = false) => {
     let description = "";
 
-    // إذا كانت اللغة سويدية وكان هناك s_description
-    if (
-      i18n.language === "sv" &&
-      product.s_description &&
-      product.s_description.trim() !== ""
-    ) {
-      description = product.s_description;
+    // محاولة الحصول على الوصف حسب اللغة
+    if (i18n.language === "sv") {
+      description =
+        product.s_supplier_description || product.s_package_description || "";
+    } else if (i18n.language === "en") {
+      description =
+        product.e_supplier_description || product.e_package_description || "";
     } else {
-      description = product.description || t("home:hero_subtitle");
+      description =
+        product.d_supplier_description || product.d_package_description || "";
+    }
+
+    // إذا لم يوجد وصف، استخدم الاسم كبديل
+    if (!description || description.trim() === "") {
+      description = getProductName(product);
     }
 
     // قص الوصف إذا كان لشاشة الموبايل (5 كلمات فقط)
@@ -325,12 +318,10 @@ const Home = () => {
     return description;
   };
 
-  // دالة لتحديد سعر العرض الصحيح
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
 
-    // حالة المنتج المجاني (discount_price = 0)
     if (discountPrice === 0 && price > 0) {
       return {
         displayPrice: 0,
@@ -341,7 +332,6 @@ const Home = () => {
       };
     }
 
-    // إذا كان discount_price موجود وأقل من price وأكبر من 0
     if (discountPrice > 0 && discountPrice < price) {
       return {
         displayPrice: discountPrice,
@@ -352,7 +342,6 @@ const Home = () => {
       };
     }
 
-    // إذا كان discount_price = 0 أو يساوي price أو أكبر من price
     return {
       displayPrice: price,
       originalPrice: null,
@@ -362,7 +351,6 @@ const Home = () => {
     };
   };
 
-  // دالة لعرض النجوم
   const renderStars = (rating) => {
     const stars = [];
     const ratingNum = parseFloat(rating) || 0;
@@ -440,7 +428,7 @@ const Home = () => {
         </div>
       )}
 
-      {/* السلايدر - معدل بشكل كامل */}
+      {/* السلايدر - يستخدم recommended_products */}
       <section
         className="relative pt-16 md:pt-0 md:h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200"
         onMouseEnter={stopAutoSlide}
@@ -448,7 +436,6 @@ const Home = () => {
       >
         {sliderProducts.length > 0 ? (
           <div className="relative w-full h-full">
-            {/* حاوية السلايدر الرئيسية */}
             <div className="h-full">
               <div
                 className="flex transition-transform duration-500 ease-in-out h-full"
@@ -460,18 +447,16 @@ const Home = () => {
                   const productDescription = getProductDescription(
                     product,
                     true,
-                  ); // وصف معدل للموبايل
+                  );
 
                   return (
                     <div
                       key={product.id}
                       className="min-w-full h-full flex-shrink-0"
                     >
-                      {/* تصميم مختلف للهواتف */}
                       {isMobile ? (
                         // تصميم الموبايل - عمودي
                         <div className="h-full flex flex-col items-center justify-center px-4 py-8">
-                          {/* الصورة في الأعلى */}
                           <div className="w-full max-w-xs mb-6">
                             {product.images && product.images[0] ? (
                               <img
@@ -479,8 +464,17 @@ const Home = () => {
                                 alt={productName}
                                 className="rounded-lg shadow-xl w-full h-auto object-contain max-h-56"
                                 onError={(e) => {
-                                  e.target.src =
-                                    "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                  e.target.onerror = null; // منع لoop
+                                  e.target.style.display = "none";
+                                  // إضافة نص بديل
+                                  const parent = e.target.parentElement;
+                                  const fallback =
+                                    document.createElement("div");
+                                  fallback.className =
+                                    "w-full h-full bg-gray-200 flex items-center justify-center";
+                                  fallback.innerHTML =
+                                    '<span class="text-gray-400">No Image</span>';
+                                  parent.appendChild(fallback);
                                 }}
                               />
                             ) : (
@@ -494,7 +488,6 @@ const Home = () => {
                             )}
                           </div>
 
-                          {/* المحتوى النصي */}
                           <div className="w-full text-white text-center px-2">
                             <h2 className="text-2xl font-bold mb-3 line-clamp-2">
                               {productName}
@@ -503,7 +496,6 @@ const Home = () => {
                               {productDescription}
                             </p>
 
-                            {/* السعر */}
                             <div className="flex flex-col items-center justify-center mb-4">
                               {priceInfo.isFree ? (
                                 <div className="flex flex-col items-center">
@@ -536,7 +528,6 @@ const Home = () => {
                               )}
                             </div>
 
-                            {/* الأزرار */}
                             <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
                               <Link
                                 to={`/product/${product.id}`}
@@ -558,7 +549,6 @@ const Home = () => {
                       ) : (
                         // تصميم سطح المكتب - أفقي
                         <div className="container mx-auto px-4 h-full flex items-center justify-between">
-                          {/* النص */}
                           <div className="w-1/2 text-white pr-8">
                             <h2 className="text-4xl lg:text-5xl font-bold mb-4">
                               {productName}
@@ -615,7 +605,6 @@ const Home = () => {
                             </div>
                           </div>
 
-                          {/* الصورة */}
                           <div className="w-1/2 flex justify-center">
                             <div className="max-w-lg">
                               {product.images && product.images[0] ? (
@@ -624,8 +613,15 @@ const Home = () => {
                                   alt={productName}
                                   className="rounded-lg shadow-xl w-full h-auto object-contain max-h-80"
                                   onError={(e) => {
-                                    e.target.src =
-                                      "https://via.placeholder.com/600x400/3B82F6/FFFFFF?text=No+Image";
+                                    e.target.onerror = null;
+                                    e.target.style.display = "none";
+                                    const parent = e.target.parentElement;
+                                    const fallback =
+                                      document.createElement("div");
+                                    fallback.className =
+                                      "w-full h-full bg-white/20 rounded-lg flex items-center justify-center";
+                                    fallback.innerHTML = `<span class="text-white text-xl">${i18n.language === "sv" ? "Ingen bild tillgänglig" : "No image available"}</span>`;
+                                    parent.appendChild(fallback);
                                   }}
                                 />
                               ) : (
@@ -647,7 +643,7 @@ const Home = () => {
               </div>
             </div>
 
-            {/* أزرار التحكم - تظهر في جميع الشاشات */}
+            {/* أزرار التحكم */}
             <button
               onClick={prevSlide}
               className={`absolute top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10 ${
@@ -667,7 +663,7 @@ const Home = () => {
               <FaChevronRight className={isMobile ? "text-sm" : ""} />
             </button>
 
-            {/* النقاط - دائماً موجودة */}
+            {/* النقاط */}
             <div
               className={`absolute ${isMobile ? "bottom-4" : "bottom-8"} left-1/2 transform -translate-x-1/2 flex space-x-2 z-10`}
             >
@@ -692,11 +688,11 @@ const Home = () => {
         )}
       </section>
 
-      {/* أقسام الفئات */}
+      {/* أقسام الفئات - تستخدم top_products_by_categories */}
       <main className="container mx-auto px-4 py-8">
-        {homeData.length > 0 ? (
-          homeData.map((category) => (
-            <section key={category.category} className="mb-12">
+        {categoriesData.length > 0 ? (
+          categoriesData.map((category) => (
+            <section key={category.category_id} className="mb-12">
               {/* عنوان الفئة */}
               <div className="flex justify-between items-center mb-6">
                 <div>
@@ -753,11 +749,16 @@ const Home = () => {
                               alt={productName}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
-                                e.target.src =
-                                  "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                e.target.onerror = null;
+                                e.target.style.display = "none";
+                                const parent = e.target.parentElement;
+                                const fallback = document.createElement("div");
+                                fallback.className =
+                                  "w-full h-full bg-white/20 rounded-lg flex items-center justify-center";
+                                fallback.innerHTML = `<span class="text-white text-xl">${i18n.language === "sv" ? "Ingen bild tillgänglig" : "No image available"}</span>`;
+                                parent.appendChild(fallback);
                               }}
                             />
-                            {/* طبقة hover */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
                           </>
                         ) : (
@@ -795,16 +796,14 @@ const Home = () => {
                         )}
                       </div>
 
-                      {/* معلومات المنتج - مبسطة */}
+                      {/* معلومات المنتج */}
                       <div className="p-4">
-                        {/* الاسم */}
                         <h3 className="font-bold text-gray-800 text-base mb-2 truncate hover:text-blue-600 transition-colors">
                           <Link to={`/product/${product.id}`}>
                             {productName}
                           </Link>
                         </h3>
 
-                        {/* التقييم */}
                         <div className="flex items-center mb-3">
                           <div className="flex">
                             {renderStars(product.product_rate)}
@@ -814,7 +813,6 @@ const Home = () => {
                           </span>
                         </div>
 
-                        {/* السعر */}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
                             {priceInfo.isFree ? (
@@ -847,7 +845,6 @@ const Home = () => {
                               </>
                             )}
                           </div>
-                          {/* زر إضافة للسلة */}
                           <button
                             onClick={() => handleAddToCart(product.id)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
@@ -857,7 +854,6 @@ const Home = () => {
                           </button>
                         </div>
 
-                        {/* زر التفاصيل فقط */}
                         <Link
                           to={`/product/${product.id}`}
                           className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 text-sm shadow-md hover:shadow-lg"
@@ -907,15 +903,14 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CSS لاخفاء شريط التمرير */}
       <style>{`
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   @keyframes fadeInDown {
@@ -933,7 +928,6 @@ const Home = () => {
     animation: fadeInDown 0.3s ease-out;
   }
 
-  /* تحسينات للهواتف */
   @media (max-width: 768px) {
     .line-clamp-2 {
       overflow: hidden;

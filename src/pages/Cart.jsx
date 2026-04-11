@@ -1,4 +1,4 @@
-// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت
+// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدل - إزالة via.placeholder.com)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -396,10 +396,10 @@ const Cart = () => {
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل
+  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
     if (!imageUrl) {
-      return "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+      return null;
     }
 
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -407,10 +407,14 @@ const Cart = () => {
     }
 
     if (imageUrl.startsWith("/")) {
-      return `https://nethy-production.up.railway.app${imageUrl}`;
+      return `https://nethy.onrender.com${imageUrl}`;
     }
 
-    return `https://nethy-production.up.railway.app/${imageUrl}`;
+    if (imageUrl.startsWith("storage/")) {
+      return `https://nethy.onrender.com/${imageUrl}`;
+    }
+
+    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   // دالة للحصول على اسم المنتج حسب اللغة
@@ -623,7 +627,7 @@ const Cart = () => {
                         className="p-6 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex flex-col md:flex-row gap-6">
-                          {/* صورة المنتج */}
+                          {/* صورة المنتج - معدلة مع معالجة الأخطاء */}
                           <div className="md:w-32">
                             <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                               {product.images && product.images[0] ? (
@@ -632,12 +636,20 @@ const Cart = () => {
                                   alt={productName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    e.target.src =
-                                      "https://via.placeholder.com/300x200/3B82F6/FFFFFF?text=No+Image";
+                                    e.target.onerror = null;
+                                    e.target.style.display = "none";
+                                    const parent = e.target.parentElement;
+                                    const fallback =
+                                      document.createElement("div");
+                                    fallback.className =
+                                      "w-full h-full flex items-center justify-center text-gray-400 bg-gray-100";
+                                    fallback.innerHTML =
+                                      '<FaTag className="text-3xl opacity-50" />';
+                                    parent.appendChild(fallback);
                                   }}
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
                                   <FaTag className="text-3xl opacity-50" />
                                 </div>
                               )}
