@@ -5,7 +5,7 @@ const BASE_URL = "https://nethy.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 60000,
 });
 
 // Request Interceptor

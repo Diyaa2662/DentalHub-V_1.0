@@ -53,5 +53,6 @@
   "save": "Save",
   "orderNotFound": "Order not found",
   "shoppingCart": "Shopping Cart",
-  "goBack": "Go Back"
+  "goBack": "Go Back",
+  "refresh": "Refresh"
 }

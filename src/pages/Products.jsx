@@ -1,7 +1,7 @@
-// src/pages/Products.jsx - النسخة المعدلة (4 منتجات في الصف)
+// src/pages/Products.jsx - النسخة المعدلة مع دعم الفئات من الرابط
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import {
   FaStar,
@@ -18,6 +18,7 @@ import {
 const Products = () => {
   const { t, i18n } = useTranslation(["common", "product"]);
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ إضافة useLocation لقراءة الرابط
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +43,25 @@ const Products = () => {
 
   // حالة لإضافة المنتجات للسلة
   const [addingToCart, setAddingToCart] = useState({});
+
+  // ✅ ========== قراءة الفئة من الرابط وتطبيق الفلتر ==========
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryId = params.get("category");
+
+    if (categoryId) {
+      const categoryIdNum = parseInt(categoryId);
+      if (
+        !isNaN(categoryIdNum) &&
+        !selectedCategories.includes(categoryIdNum)
+      ) {
+        setSelectedCategories([categoryIdNum]);
+        // فتح شريط الفلتر تلقائياً ليرى المستخدم الفلتر المطبق
+        setShowFilter(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]); // يتغير عندما يتغير الرابط
 
   useEffect(() => {
     fetchProducts();

@@ -91,26 +91,20 @@ const Home = () => {
       setLoading(true);
 
       const langParam = i18n.language === "sv" ? "sv" : "en";
-      const response = await api.get(`/mainpage?lang=${langParam}`);
 
-      // ✅ 1. معالجة السلايدر - عرض كل المنتجات بدون فلترة
+      // ✅ إضافة timeout مخصص لهذا الطلب
+      const response = await api.get(`/mainpage?lang=${langParam}`, {
+        timeout: 60000, // 60 ثانية
+      });
+
       const recommendedProducts = response.data.data.recommended_products || [];
+      setSliderProducts(recommendedProducts);
 
-      // عرض كل المنتجات كما هي (حتى لو outofstock أو بدون صور)
-      // نأخذ كل المنتجات بدون filter وبدون slice
-      const sliderItems = recommendedProducts;
-
-      setSliderProducts(sliderItems);
-
-      // ✅ 2. معالجة الفئات من top_products_by_categories
       const categoriesWithProducts =
         response.data.data.top_products_by_categories || [];
-
-      // فلترة الفئات التي لديها منتجات
       const validCategories = categoriesWithProducts.filter(
         (category) => category.products && category.products.length > 0,
       );
-
       setCategoriesData(validCategories);
     } catch (err) {
       setError(t("common:error"));

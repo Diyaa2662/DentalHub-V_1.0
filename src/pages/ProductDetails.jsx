@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة المعدلة (إزالة via.placeholder.com)
+// src/pages/ProductDetails.jsx - النسخة النهائية مع العلاقات
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -11,8 +11,180 @@ import {
   FaTag,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaFilePdf,
+  FaInfoCircle,
+  FaShieldAlt,
+  FaClipboardList,
+  FaBoxes,
+  FaArrowRight,
+  FaLink,
+  FaCogs,
+  FaCopy,
+  FaRandom,
 } from "react-icons/fa";
 
+// ========== مكون كرت المنتج للعلاقات ==========
+const RelatedProductCard = ({ product, onAddToCart }) => {
+  const { t, i18n } = useTranslation(["common", "product"]);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const getProductName = (prod) => {
+    if (i18n.language === "sv" && prod.s_name) return prod.s_name;
+    return prod.name || "";
+  };
+
+  const getDisplayPrice = (prod) => {
+    const price = parseFloat(prod.price) || 0;
+    const discountPrice = parseFloat(prod.discount_price) || 0;
+    if (discountPrice === 0 && price > 0) {
+      return {
+        displayPrice: 0,
+        originalPrice: price,
+        hasDiscount: true,
+        discountPercentage: 100,
+        isFree: true,
+      };
+    }
+    if (discountPrice > 0 && discountPrice < price) {
+      return {
+        displayPrice: discountPrice,
+        originalPrice: price,
+        hasDiscount: true,
+        discountPercentage: Math.round(((price - discountPrice) / price) * 100),
+        isFree: false,
+      };
+    }
+    return {
+      displayPrice: price,
+      originalPrice: null,
+      hasDiscount: false,
+      discountPercentage: 0,
+      isFree: false,
+    };
+  };
+
+  const getFullImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
+      return imageUrl;
+    if (imageUrl.startsWith("/"))
+      return `https://nethy.onrender.com${imageUrl}`;
+    if (imageUrl.startsWith("storage/"))
+      return `https://nethy.onrender.com/${imageUrl}`;
+    return `https://nethy.onrender.com/${imageUrl}`;
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const ratingNum = parseFloat(rating) || 0;
+    const fullStars = Math.floor(ratingNum);
+    for (let i = 0; i < 5; i++) {
+      stars.push(
+        <FaStar
+          key={i}
+          className={
+            i < fullStars ? "text-yellow-500 text-sm" : "text-gray-300 text-sm"
+          }
+        />,
+      );
+    }
+    return stars;
+  };
+
+  const handleAdd = async () => {
+    setIsAdding(true);
+    await onAddToCart(product.id, 1);
+    setIsAdding(false);
+  };
+
+  const priceInfo = getDisplayPrice(product);
+  const productName = getProductName(product);
+
+  return (
+    <div className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+      <div className="relative h-40 bg-gray-100 overflow-hidden">
+        {product.images && product.images[0] ? (
+          <img
+            src={getFullImageUrl(product.images[0].url)}
+            alt={productName}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200">
+            <FaTag className="text-4xl opacity-50" />
+          </div>
+        )}
+        {priceInfo.hasDiscount && (
+          <div className="absolute top-2 left-2">
+            <div
+              className={`text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg ${priceInfo.isFree ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}`}
+            >
+              {priceInfo.isFree
+                ? i18n.language === "sv"
+                  ? "GRATIS"
+                  : "FREE"
+                : `-${priceInfo.discountPercentage}%`}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <h3 className="font-bold text-gray-800 text-sm mb-1 truncate hover:text-blue-600 transition-colors">
+          <Link to={`/product/${product.id}`}>{productName}</Link>
+        </h3>
+        <div className="flex items-center mb-2">
+          <div className="flex">{renderStars(product.product_rate)}</div>
+          <span className="text-gray-500 text-xs ml-1">
+            ({product.product_rate})
+          </span>
+        </div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center">
+            {priceInfo.isFree ? (
+              <span className="text-lg font-bold text-green-600">
+                {i18n.language === "sv" ? "GRATIS" : "FREE"}
+              </span>
+            ) : (
+              <>
+                <span className="text-lg font-bold text-blue-600">
+                  ${priceInfo.displayPrice.toFixed(2)}
+                </span>
+                {priceInfo.hasDiscount && priceInfo.displayPrice > 0 && (
+                  <span className="text-gray-400 line-through text-xs ml-1">
+                    ${priceInfo.originalPrice.toFixed(2)}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={isAdding}
+            className="text-gray-400 hover:text-blue-600 transition-colors"
+          >
+            {isAdding ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-blue-600"></div>
+            ) : (
+              <FaShoppingCart size={18} />
+            )}
+          </button>
+        </div>
+        <Link
+          to={`/product/${product.id}`}
+          className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-1.5 rounded-lg font-medium text-center text-xs transition-all"
+        >
+          {t("common:viewDetails")}
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+// ========== المكون الرئيسي ==========
 const ProductDetails = () => {
   const { t, i18n } = useTranslation(["common", "product"]);
   const { id } = useParams();
@@ -24,12 +196,20 @@ const ProductDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [activeTab, setActiveTab] = useState("description");
+
+  // حالات للمنتجات المرتبطة
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [accessoryProducts, setAccessoryProducts] = useState([]);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [variationProducts, setVariationProducts] = useState([]);
+  const [loadingRelations, setLoadingRelations] = useState(false);
 
   // حالة للتنبيهات
   const [notification, setNotification] = useState({
     show: false,
     message: "",
-    type: "success", // success, error, info
+    type: "success",
   });
 
   useEffect(() => {
@@ -41,7 +221,12 @@ const ProductDetails = () => {
     try {
       setLoading(true);
       const response = await api.get(`/products/${id}`);
-      setProduct(response.data.data);
+      const productData = response.data.data;
+      setProduct(productData);
+
+      if (productData.relations) {
+        await fetchRelatedProducts(productData.relations);
+      }
     } catch (err) {
       setError(t("product:error"));
       console.error("Error fetching product details:", err);
@@ -50,28 +235,71 @@ const ProductDetails = () => {
     }
   };
 
-  // دالة لإظهار التنبيه
-  const showNotification = (message, type = "success") => {
-    setNotification({
-      show: true,
-      message,
-      type,
-    });
+  const fetchRelatedProducts = async (relations) => {
+    setLoadingRelations(true);
 
-    // إخفاء التنبيه بعد 3 ثواني
+    try {
+      if (relations.related && relations.related.length > 0) {
+        const relatedIds = relations.related.map((r) => r.related_product_id);
+        const products = await fetchProductsByIds(relatedIds);
+        setRelatedProducts(products);
+      }
+
+      if (relations.accessory && relations.accessory.length > 0) {
+        const accessoryIds = relations.accessory.map(
+          (r) => r.related_product_id,
+        );
+        const products = await fetchProductsByIds(accessoryIds);
+        setAccessoryProducts(products);
+      }
+
+      if (relations.similar && relations.similar.length > 0) {
+        const similarIds = relations.similar.map((r) => r.related_product_id);
+        const products = await fetchProductsByIds(similarIds);
+        setSimilarProducts(products);
+      }
+
+      if (relations.variation && relations.variation.length > 0) {
+        const variationIds = relations.variation.map(
+          (r) => r.related_product_id,
+        );
+        const products = await fetchProductsByIds(variationIds);
+        setVariationProducts(products);
+      }
+    } catch (err) {
+      console.error("Error fetching related products:", err);
+    } finally {
+      setLoadingRelations(false);
+    }
+  };
+
+  const fetchProductsByIds = async (ids) => {
+    const products = [];
+    for (const productId of ids) {
+      try {
+        const response = await api.get(`/products/${productId}`);
+        if (response.data && response.data.data) {
+          products.push(response.data.data);
+        }
+      } catch (err) {
+        console.error(`Error fetching product ${productId}:`, err);
+      }
+    }
+    return products;
+  };
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ show: true, message, type });
     setTimeout(() => {
-      setNotification({
-        show: false,
-        message: "",
-        type: "success",
-      });
+      setNotification({ show: false, message: "", type: "success" });
     }, 3000);
   };
 
-  // وظيفة إضافة منتج للسلة
-  const handleAddToCart = async () => {
-    // التحقق من تسجيل الدخول
+  const handleAddToCart = async (productId = null, qty = null) => {
     const token = localStorage.getItem("customerToken");
+    const targetProductId = productId || parseInt(id);
+    const targetQuantity = qty || quantity;
+
     if (!token) {
       showNotification(
         i18n.language === "sv"
@@ -79,7 +307,6 @@ const ProductDetails = () => {
           : "Please login to add items to cart",
         "error",
       );
-
       return;
     }
 
@@ -89,8 +316,8 @@ const ProductDetails = () => {
       const response = await api.post(
         "/additemtoorder",
         {
-          product_id: parseInt(id),
-          quantity: parseInt(quantity),
+          product_id: targetProductId,
+          quantity: targetQuantity,
         },
         {
           headers: {
@@ -100,108 +327,69 @@ const ProductDetails = () => {
         },
       );
 
-      if (response.data && response.data.message) {
-        showNotification(
-          response.data.message ||
-            (i18n.language === "sv"
-              ? `${quantity} ${quantity === 1 ? "produkt" : "produkter"} har lagts till i varukorgen`
-              : `${quantity} ${quantity === 1 ? "item" : "items"} added to cart successfully`),
-          "success",
-        );
-      } else {
-        showNotification(
-          i18n.language === "sv"
-            ? `${quantity} ${quantity === 1 ? "produkt" : "produkter"} har lagts till i varukorgen`
-            : `${quantity} ${quantity === 1 ? "item" : "items"} added to cart successfully`,
-          "success",
-        );
-      }
+      showNotification(
+        response.data?.message ||
+          (i18n.language === "sv"
+            ? `${targetQuantity} ${targetQuantity === 1 ? "produkt" : "produkter"} har lagts till i varukorgen`
+            : `${targetQuantity} ${targetQuantity === 1 ? "item" : "items"} added to cart successfully`),
+        "success",
+      );
 
-      // إعادة تعيين الكمية بعد الإضافة الناجحة
-      setQuantity(1);
+      if (!productId) setQuantity(1);
     } catch (err) {
       console.error("❌ Error adding to cart:", err);
 
-      let errorMessage = "";
-
       if (err.response?.status === 401) {
-        // التوكن غير صالح
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
-        errorMessage =
+        showNotification(
           i18n.language === "sv"
             ? "Din session har gått ut. Var vänlig logga in igen"
-            : "Your session has expired. Please login again";
-
-        showNotification(errorMessage, "error");
-
-        setTimeout(() => {
-          navigate("/login");
-        }, 1000);
-      } else if (err.response?.status === 422) {
-        // خطأ في التحقق
-        const errors = err.response.data.errors;
-        const firstError = Object.values(errors)[0]?.[0];
-        errorMessage =
-          firstError ||
-          (i18n.language === "sv"
-            ? "Ogiltig produktdata eller kvantitet"
-            : "Invalid product data or quantity");
-        showNotification(errorMessage, "error");
-      } else if (err.response?.status === 400) {
-        // خطأ في الطلب
-        errorMessage =
-          err.response.data?.message ||
-          (i18n.language === "sv"
-            ? "Kunde inte lägga till produkten i varukorgen"
-            : "Could not add product to cart");
-        showNotification(errorMessage, "error");
+            : "Your session has expired. Please login again",
+          "error",
+        );
+        setTimeout(() => navigate("/login"), 1000);
       } else {
-        errorMessage =
+        showNotification(
           err.response?.data?.message ||
-          (i18n.language === "sv"
-            ? "Ett fel uppstod när produkten skulle läggas till i varukorgen"
-            : "An error occurred while adding product to cart");
-        showNotification(errorMessage, "error");
+            (i18n.language === "sv"
+              ? "Kunde inte lägga till produkten i varukorgen"
+              : "Could not add product to cart"),
+          "error",
+        );
       }
     } finally {
       setAddingToCart(false);
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) {
-      return null;
-    }
-
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
       return imageUrl;
-    }
-
-    if (imageUrl.startsWith("/")) {
+    if (imageUrl.startsWith("/"))
       return `https://nethy.onrender.com${imageUrl}`;
-    }
-
-    if (imageUrl.startsWith("storage/")) {
+    if (imageUrl.startsWith("storage/"))
       return `https://nethy.onrender.com/${imageUrl}`;
-    }
-
     return `https://nethy.onrender.com/${imageUrl}`;
   };
 
-  // زيادة/تقليل الكمية
-  const increaseQuantity = () => {
-    setQuantity((prev) => prev + 1);
+  const getFileUrl = (filePath) => {
+    if (!filePath) return null;
+    if (filePath.startsWith("http://") || filePath.startsWith("https://"))
+      return filePath;
+    if (filePath.startsWith("/"))
+      return `https://nethy.onrender.com${filePath}`;
+    if (filePath.startsWith("storage/"))
+      return `https://nethy.onrender.com/${filePath}`;
+    return `https://nethy.onrender.com/${filePath}`;
   };
 
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
   const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
+    if (quantity > 1) setQuantity((prev) => prev - 1);
   };
 
-  // تغيير الصورة الرئيسية
   const nextImage = () => {
     if (product?.images && product.images.length > 0) {
       setSelectedImageIndex((prev) =>
@@ -216,6 +404,51 @@ const ProductDetails = () => {
         prev === 0 ? product.images.length - 1 : prev - 1,
       );
     }
+  };
+
+  const getProductDescription = () => {
+    if (!product) return "";
+    if (i18n.language === "sv")
+      return (
+        product.s_supplier_description || product.s_package_description || ""
+      );
+    if (i18n.language === "en")
+      return (
+        product.e_supplier_description || product.e_package_description || ""
+      );
+    return (
+      product.d_supplier_description || product.d_package_description || ""
+    );
+  };
+
+  const getProductName = (prod = null) => {
+    const target = prod || product;
+    if (!target) return "";
+    if (i18n.language === "sv" && target.s_name) return target.s_name;
+    return target.name || "";
+  };
+
+  const getCategoryName = () => {
+    if (!product) return "";
+    if (i18n.language === "sv" && product.s_category) return product.s_category;
+    return product.category || "";
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const ratingNum = parseFloat(rating) || 0;
+    const fullStars = Math.floor(ratingNum);
+    for (let i = 0; i < 5; i++) {
+      stars.push(
+        <FaStar
+          key={i}
+          className={
+            i < fullStars ? "text-yellow-500 text-lg" : "text-gray-300 text-lg"
+          }
+        />,
+      );
+    }
+    return stars;
   };
 
   if (loading) {
@@ -238,7 +471,7 @@ const ProductDetails = () => {
           </h2>
           <button
             onClick={() => navigate("/products")}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
           >
             {t("product:backToProducts")}
           </button>
@@ -247,65 +480,36 @@ const ProductDetails = () => {
     );
   }
 
-  // الحصول على القيم مباشرة من product
-  const productName =
-    i18n.language === "sv" && product.s_name ? product.s_name : product.name;
-
-  const productDescription =
-    i18n.language === "sv" && product.s_description
-      ? product.s_description
-      : product.description;
-
-  // حساب السعر مع حالة المنتج المجاني
   const price = parseFloat(product.price) || 0;
   const discountPrice = parseFloat(product.discount_price) || 0;
-
-  // ⭐⭐⭐ حالة المنتج المجاني ⭐⭐⭐
   const isFreeProduct = discountPrice === 0 && price > 0;
   const hasDiscount = discountPrice > 0 && discountPrice < price;
   const displayPrice = isFreeProduct ? 0 : hasDiscount ? discountPrice : price;
-
-  // حساب نسبة الخصم إذا كان موجوداً
   const discountPercentage = isFreeProduct
     ? 100
     : hasDiscount
       ? Math.round(((price - discountPrice) / price) * 100)
       : 0;
 
-  // دالة لعرض النجوم
-  const renderStars = (rating) => {
-    const stars = [];
-    const ratingNum = parseFloat(rating) || 0;
-    const fullStars = Math.floor(ratingNum);
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<FaStar key={i} className="text-yellow-500 text-lg" />);
-      } else {
-        stars.push(<FaStar key={i} className="text-gray-300 text-lg" />);
-      }
-    }
-    return stars;
-  };
+  const hasSafetySheets =
+    product.safty_sheets && product.safty_sheets.length > 0;
+  const hasInstructionSheets =
+    product.instraction_sheets && product.instraction_sheets.length > 0;
+  const hasInfoMaterials =
+    product.info_materials && product.info_materials.length > 0;
+  const hasAdditionalInfo =
+    product.additonalinfo && product.additonalinfo.content?.trim();
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* تنبيهات */}
       {notification.show && (
         <div
-          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
-            notification.type === "success"
-              ? "bg-green-50 border-green-200 text-green-800"
-              : "bg-red-50 border-red-200 text-red-800"
-          } border rounded-lg shadow-lg p-4 max-w-sm`}
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${notification.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"} border rounded-lg shadow-lg p-4 max-w-sm`}
         >
           <div className="flex items-start">
             <div
-              className={`flex-shrink-0 ${
-                notification.type === "success"
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
+              className={`flex-shrink-0 ${notification.type === "success" ? "text-green-400" : "text-red-400"}`}
             >
               {notification.type === "success" ? (
                 <FaCheckCircle className="text-lg" />
@@ -333,7 +537,7 @@ const ProductDetails = () => {
             </Link>
             <span className="mx-2">/</span>
             <span className="text-gray-800 font-medium truncate max-w-xs">
-              {productName}
+              {getProductName()}
             </span>
           </div>
         </div>
@@ -344,7 +548,6 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* قسم الصور */}
           <div className="space-y-4">
-            {/* الصورة الرئيسية - معدلة مع معالجة الأخطاء */}
             <div className="relative bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
               {product.images && product.images.length > 0 ? (
                 <>
@@ -352,55 +555,33 @@ const ProductDetails = () => {
                     src={getFullImageUrl(
                       product.images[selectedImageIndex].url,
                     )}
-                    alt={productName}
+                    alt={getProductName()}
                     className="w-full h-[350px] object-contain p-4"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.style.display = "none";
-                      // إضافة fallback في حالة فشل تحميل الصورة
-                      const parent = e.target.parentElement;
-                      const fallback = document.createElement("div");
-                      fallback.className =
-                        "w-full h-[350px] flex items-center justify-center bg-gray-100";
-                      fallback.innerHTML = `
-                        <div class="text-center">
-                          <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                          </svg>
-                          <p class="text-gray-500">${t("product:noImage") || "No Image"}</p>
-                        </div>
-                      `;
-                      parent.appendChild(fallback);
                     }}
                   />
-
-                  {/* أزرار التنقل بين الصور */}
                   {product.images.length > 1 && (
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-colors"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg"
                       >
                         <FaChevronLeft />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-colors"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg"
                       >
                         <FaChevronRight />
                       </button>
                     </>
                   )}
-
-                  {/* علامة الخصم أو المنتج المجاني */}
                   {(hasDiscount || isFreeProduct) && (
                     <div className="absolute top-4 left-4">
                       <div
-                        className={`text-white text-lg font-bold px-4 py-2 rounded-lg shadow-xl ${
-                          isFreeProduct
-                            ? "bg-gradient-to-r from-green-500 to-green-600"
-                            : "bg-gradient-to-r from-red-500 to-red-600"
-                        }`}
+                        className={`text-white text-lg font-bold px-4 py-2 rounded-lg shadow-xl ${isFreeProduct ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}`}
                       >
                         {isFreeProduct
                           ? i18n.language === "sv"
@@ -420,34 +601,21 @@ const ProductDetails = () => {
                 </div>
               )}
             </div>
-
-            {/* معرض الصور المصغرة - معدل مع معالجة الأخطاء */}
             {product.images && product.images.length > 1 && (
               <div className="flex space-x-3 overflow-x-auto py-2">
                 {product.images.map((image, index) => (
                   <button
                     key={image.id}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImageIndex === index
-                        ? "border-blue-600 ring-2 ring-blue-100"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}
                   >
                     <img
                       src={getFullImageUrl(image.url)}
-                      alt={`${productName} - image ${index + 1}`}
+                      alt={`${getProductName()} - ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.style.display = "none";
-                        const parent = e.target.parentElement;
-                        const fallback = document.createElement("div");
-                        fallback.className =
-                          "w-full h-full flex items-center justify-center bg-gray-100";
-                        fallback.innerHTML =
-                          '<FaTag className="text-gray-400 text-2xl" />';
-                        parent.appendChild(fallback);
                       }}
                     />
                   </button>
@@ -456,14 +624,12 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* قسم المعلومات */}
+          {/* قسم المعلومات الأساسية */}
           <div className="space-y-6">
-            {/* الاسم والتقييم */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {productName}
+                {getProductName()}
               </h1>
-
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center">
                   {renderStars(product.product_rate)}
@@ -471,16 +637,16 @@ const ProductDetails = () => {
                     {product.product_rate} ({t("product:rating")})
                   </span>
                 </div>
+                <span className="text-gray-400">|</span>
+                <span className="text-gray-600">
+                  {t("product:category")}: {getCategoryName()}
+                </span>
               </div>
             </div>
 
-            {/* السعر - عرض مباشر مع حالة المنتج المجاني */}
+            {/* السعر */}
             <div
-              className={`p-6 rounded-xl border ${
-                isFreeProduct
-                  ? "bg-gradient-to-r from-green-50 to-white border-green-100"
-                  : "bg-gradient-to-r from-blue-50 to-white border-blue-100"
-              }`}
+              className={`p-6 rounded-xl border ${isFreeProduct ? "bg-gradient-to-r from-green-50 to-white border-green-100" : "bg-gradient-to-r from-blue-50 to-white border-blue-100"}`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center mb-2">
                 {isFreeProduct ? (
@@ -507,7 +673,6 @@ const ProductDetails = () => {
                     <span className="text-4xl font-bold text-blue-600">
                       ${displayPrice.toFixed(2)}
                     </span>
-
                     {hasDiscount && (
                       <>
                         <span className="text-2xl line-through text-gray-400 ml-4">
@@ -522,34 +687,20 @@ const ProductDetails = () => {
                   </>
                 )}
               </div>
-
               <div className="text-gray-600 mt-2">
                 <span className="font-medium">{t("product:tax")}:</span>{" "}
                 {product.tax_rate}%
                 {isFreeProduct && (
                   <span className="ml-4 text-green-600 font-medium">
-                    {i18n.language === "sv"
-                      ? "✓ Inget skatt för gratis produkter"
-                      : "✓ No tax on free items"}
+                    ✓ No tax on free items
                   </span>
                 )}
               </div>
             </div>
 
-            {/* الوصف */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-3">
-                {t("product:description")}
-              </h3>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {productDescription}
-              </p>
-            </div>
-
             {/* الكمية والإجراءات */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
               <div className="space-y-6">
-                {/* الكمية */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     {t("common:quantity")}
@@ -558,133 +709,303 @@ const ProductDetails = () => {
                     <button
                       onClick={decreaseQuantity}
                       disabled={quantity <= 1}
-                      className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50"
                     >
                       <span className="text-xl">−</span>
                     </button>
-
                     <input
                       min="1"
                       value={quantity}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        setQuantity(value >= 1 ? value : 1);
-                      }}
-                      className="w-20 h-10 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      onChange={(e) =>
+                        setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                      }
+                      className="w-20 h-10 text-center border border-gray-300 rounded-lg"
                     />
-
                     <button
                       onClick={increaseQuantity}
                       className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg"
                     >
                       <span className="text-xl">+</span>
                     </button>
-
                     <span className="text-gray-600 ml-2">
                       {quantity}{" "}
                       {quantity === 1 ? t("common:piece") : t("common:pieces")}
                     </span>
                   </div>
                 </div>
-
-                {/* زر إضافة للسلة فقط */}
-                <div>
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingToCart}
-                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center ${
-                      addingToCart
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : isFreeProduct
-                          ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-                    }`}
-                  >
-                    {addingToCart ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-3"></div>
-                        {t("common:addingToCart")}
-                      </>
-                    ) : isFreeProduct ? (
-                      <>
-                        <FaShoppingCart className="mr-3" />
-                        {i18n.language === "sv"
-                          ? "FÅ GRATIS NU"
-                          : "GET IT FOR FREE"}{" "}
-                        ({quantity}{" "}
-                        {quantity === 1
-                          ? t("common:piece")
-                          : t("common:pieces")}
-                        )
-                      </>
-                    ) : (
-                      <>
-                        <FaShoppingCart className="mr-3" />
-                        {t("common:addToCart")} ({quantity}{" "}
-                        {quantity === 1
-                          ? t("common:piece")
-                          : t("common:pieces")}
-                        )
-                      </>
-                    )}
-                  </button>
-
-                  {/* رسالة إضافية للمنتجات المجانية */}
-                  {isFreeProduct && !addingToCart && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <FaCheckCircle className="text-green-500" />
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-green-700 font-medium">
-                            {i18n.language === "sv"
-                              ? "Denna produkt är helt gratis! Ingen kostnad för dig."
-                              : "This product is completely free! No cost to you."}
-                          </p>
-                          <p className="text-xs text-green-600 mt-1">
-                            {i18n.language === "sv"
-                              ? "Betalnings- och leveransavgifter kan fortfarande gälla."
-                              : "Payment and shipping fees may still apply."}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                <button
+                  onClick={() => handleAddToCart()}
+                  disabled={addingToCart}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg flex items-center justify-center ${addingToCart ? "bg-gray-400 cursor-not-allowed" : isFreeProduct ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white" : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"}`}
+                >
+                  {addingToCart ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-3"></div>
+                      {t("common:addingToCart")}
+                    </>
+                  ) : isFreeProduct ? (
+                    <>
+                      <FaShoppingCart className="mr-3" />
+                      {i18n.language === "sv"
+                        ? "FÅ GRATIS NU"
+                        : "GET IT FOR FREE"}{" "}
+                      ({quantity}{" "}
+                      {quantity === 1 ? t("common:piece") : t("common:pieces")})
+                    </>
+                  ) : (
+                    <>
+                      <FaShoppingCart className="mr-3" />
+                      {t("common:addToCart")} ({quantity}{" "}
+                      {quantity === 1 ? t("common:piece") : t("common:pieces")})
+                    </>
                   )}
-                </div>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* زر العودة فقط */}
+        {/* التبويبات */}
+        <div className="mt-12">
+          <div className="border-b border-gray-200">
+            <nav className="flex flex-wrap gap-4">
+              <button
+                onClick={() => setActiveTab("description")}
+                className={`pb-3 px-2 font-medium transition-colors ${activeTab === "description" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+              >
+                {t("product:description")}
+              </button>
+              {hasAdditionalInfo && (
+                <button
+                  onClick={() => setActiveTab("additional")}
+                  className={`pb-3 px-2 font-medium transition-colors ${activeTab === "additional" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+                >
+                  <FaInfoCircle className="inline mr-1" />{" "}
+                  {t("product:additionalInfo")}
+                </button>
+              )}
+              {(hasSafetySheets ||
+                hasInstructionSheets ||
+                hasInfoMaterials) && (
+                <button
+                  onClick={() => setActiveTab("files")}
+                  className={`pb-3 px-2 font-medium transition-colors ${activeTab === "files" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+                >
+                  <FaFilePdf className="inline mr-1" /> {t("product:documents")}
+                </button>
+              )}
+            </nav>
+          </div>
+
+          <div className="mt-6">
+            {activeTab === "description" && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {getProductDescription()}
+                </p>
+              </div>
+            )}
+            {activeTab === "additional" && hasAdditionalInfo && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                {product.additonalinfo.title && (
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">
+                    {product.additonalinfo.title}
+                  </h3>
+                )}
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {product.additonalinfo.content}
+                </p>
+              </div>
+            )}
+            {activeTab === "files" && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div className="space-y-6">
+                  {hasSafetySheets && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                        <FaShieldAlt className="mr-2 text-blue-600" />{" "}
+                        {t("product:safetySheets")}
+                      </h3>
+                      <div className="space-y-2">
+                        {product.safty_sheets.map((file, index) => (
+                          <a
+                            key={file.id}
+                            href={getFileUrl(file.file_path)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                          >
+                            <div className="flex items-center">
+                              <FaFilePdf className="text-red-500 mr-3" />
+                              <span>Safety Sheet {index + 1}</span>
+                            </div>
+                            <FaArrowRight className="text-gray-400" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {hasInstructionSheets && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                        <FaClipboardList className="mr-2 text-green-600" />{" "}
+                        {t("product:instructionSheets")}
+                      </h3>
+                      <div className="space-y-2">
+                        {product.instraction_sheets.map((file, index) => (
+                          <a
+                            key={file.id}
+                            href={getFileUrl(file.file_path)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                          >
+                            <div className="flex items-center">
+                              <FaFilePdf className="text-red-500 mr-3" />
+                              <span>Instruction Sheet {index + 1}</span>
+                            </div>
+                            <FaArrowRight className="text-gray-400" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {hasInfoMaterials && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                        <FaBoxes className="mr-2 text-purple-600" />{" "}
+                        {t("product:infoMaterials")}
+                      </h3>
+                      <div className="space-y-2">
+                        {product.info_materials.map((file, index) => (
+                          <a
+                            key={file.id}
+                            href={getFileUrl(file.file_path)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                          >
+                            <div className="flex items-center">
+                              <FaFilePdf className="text-red-500 mr-3" />
+                              <span>Info Material {index + 1}</span>
+                            </div>
+                            <FaArrowRight className="text-gray-400" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ========== أقسام المنتجات المرتبطة ========== */}
+        {!loadingRelations && (
+          <>
+            {/* Related Products */}
+            {relatedProducts.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FaLink className="mr-2 text-blue-500" />{" "}
+                    {t("product:relatedProducts")}
+                  </h2>
+                </div>
+                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                  {relatedProducts.map((prod) => (
+                    <RelatedProductCard
+                      key={prod.id}
+                      product={prod}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Accessory Products */}
+            {accessoryProducts.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FaCogs className="mr-2 text-green-500" />{" "}
+                    {t("product:accessories")}
+                  </h2>
+                </div>
+                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                  {accessoryProducts.map((prod) => (
+                    <RelatedProductCard
+                      key={prod.id}
+                      product={prod}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Similar Products */}
+            {similarProducts.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FaRandom className="mr-2 text-purple-500" />{" "}
+                    {t("product:similarProducts")}
+                  </h2>
+                </div>
+                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                  {similarProducts.map((prod) => (
+                    <RelatedProductCard
+                      key={prod.id}
+                      product={prod}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Variation Products */}
+            {variationProducts.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FaCopy className="mr-2 text-orange-500" />{" "}
+                    {t("product:variations")}
+                  </h2>
+                </div>
+                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                  {variationProducts.map((prod) => (
+                    <RelatedProductCard
+                      key={prod.id}
+                      product={prod}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* زر العودة */}
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
-            <FaChevronLeft className="mr-2" />
-            {t("product:backToAllProducts")}
+            <FaChevronLeft className="mr-2" /> {t("product:backToAllProducts")}
           </button>
         </div>
       </div>
 
-      {/* CSS للأنيميشن */}
       <style>{`
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in-down {
-          animation: fadeInDown 0.3s ease-out;
-        }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-down { animation: fadeInDown 0.3s ease-out; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
