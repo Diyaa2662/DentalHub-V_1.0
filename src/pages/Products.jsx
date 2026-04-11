@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة (إزالة via.placeholder.com)
+// src/pages/Products.jsx - النسخة المعدلة (4 منتجات في الصف)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const Products = () => {
   const [notification, setNotification] = useState({
     show: false,
     message: "",
-    type: "success", // success, error, info
+    type: "success",
   });
 
   // حالة للتصفية
@@ -73,13 +73,9 @@ const Products = () => {
         response.data.date &&
         response.data.date.length > 0
       ) {
-        // ✅ بيانات المنتجات تأتي مباشرة
         setProducts(response.data.date);
-
-        // إذا كان عدد المنتجات أقل من 10، فهذه آخر صفحة
         setHasMorePages(response.data.date.length === 10);
       } else {
-        // إذا كانت المصفوفة فارغة، هذه آخر صفحة
         if (currentPage === 1) {
           setProducts([]);
         }
@@ -97,7 +93,6 @@ const Products = () => {
   const fetchCategories = async () => {
     try {
       const response = await api.get("/categories");
-
       if (response.data && response.data.data) {
         setCategories(response.data.data);
       }
@@ -107,15 +102,12 @@ const Products = () => {
     }
   };
 
-  // دالة لإظهار التنبيه
   const showNotification = (message, type = "success") => {
     setNotification({
       show: true,
       message,
       type,
     });
-
-    // إخفاء التنبيه بعد 3 ثواني
     setTimeout(() => {
       setNotification({
         show: false,
@@ -125,9 +117,7 @@ const Products = () => {
     }, 3000);
   };
 
-  // وظيفة إضافة منتج للسلة
   const handleAddToCart = async (productId, productName) => {
-    // التحقق من تسجيل الدخول
     const token = localStorage.getItem("customerToken");
     if (!token) {
       showNotification(
@@ -139,7 +129,6 @@ const Products = () => {
       return;
     }
 
-    // تحديث حالة الإضافة لهذا المنتج
     setAddingToCart((prev) => ({ ...prev, [productId]: true }));
 
     try {
@@ -147,7 +136,7 @@ const Products = () => {
         "/additemtoorder",
         {
           product_id: productId,
-          quantity: 1, // الكمية الافتراضية
+          quantity: 1,
         },
         {
           headers: {
@@ -157,61 +146,38 @@ const Products = () => {
         },
       );
 
-      if (response.data && response.data.message) {
-        showNotification(
-          response.data.message ||
-            (i18n.language === "sv"
-              ? `${productName} har lagts till i varukorgen`
-              : `${productName} added to cart successfully`),
-          "success",
-        );
-      } else {
-        showNotification(
-          i18n.language === "sv"
+      showNotification(
+        response.data?.message ||
+          (i18n.language === "sv"
             ? `${productName} har lagts till i varukorgen`
-            : `${productName} added to cart successfully`,
-          "success",
-        );
-      }
+            : `${productName} added to cart successfully`),
+        "success",
+      );
     } catch (err) {
       console.error("❌ Error adding to cart:", err);
 
-      let errorMessage = "";
-
       if (err.response?.status === 401) {
-        // التوكن غير صالح
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
-        errorMessage =
+        showNotification(
           i18n.language === "sv"
             ? "Din session har gått ut. Var vänlig logga in igen"
-            : "Your session has expired. Please login again";
-
-        showNotification(errorMessage, "error");
-
+            : "Your session has expired. Please login again",
+          "error",
+        );
         setTimeout(() => {
           navigate("/login");
         }, 1000);
-      } else if (err.response?.status === 422) {
-        // خطأ في التحقق
-        const errors = err.response.data.errors;
-        const firstError = Object.values(errors)[0]?.[0];
-        errorMessage =
-          firstError ||
-          (i18n.language === "sv"
-            ? "Ogiltig produktdata"
-            : "Invalid product data");
-        showNotification(errorMessage, "error");
       } else {
-        errorMessage =
+        showNotification(
           err.response?.data?.message ||
-          (i18n.language === "sv"
-            ? `Kunde inte lägga till ${productName} i varukorgen`
-            : `Could not add ${productName} to cart`);
-        showNotification(errorMessage, "error");
+            (i18n.language === "sv"
+              ? `Kunde inte lägga till ${productName} i varukorgen`
+              : `Could not add ${productName} to cart`),
+          "error",
+        );
       }
     } finally {
-      // إزالة حالة الإضافة لهذا المنتج
       setAddingToCart((prev) => ({ ...prev, [productId]: false }));
     }
   };
@@ -219,28 +185,20 @@ const Products = () => {
   const filterProducts = async () => {
     try {
       setFilterLoading(true);
-
-      // إرسال طلب POST لتصفية المنتجات
       const response = await api.post("/categoryfilter", {
         categories: selectedCategories,
       });
 
       if (response.data && response.data.date) {
-        // ✅ تصحيح: بيانات الفلترة تأتي بهيكلية مختلفة
-        // هيكلية الفلترة: [{category: "...", products: [...]}, ...]
-        // نحتاج لتحويلها إلى مصفوفة مسطحة من المنتجات
-
         const allProducts = [];
-
         response.data.date.forEach((categoryGroup) => {
           if (categoryGroup.products && Array.isArray(categoryGroup.products)) {
             allProducts.push(...categoryGroup.products);
           }
         });
-
         setProducts(allProducts);
-        setHasMorePages(false); // عند التصفية، لا يوجد صفحات
-        setCurrentPage(1); // نرجع للصفحة الأولى عند التصفية
+        setHasMorePages(false);
+        setCurrentPage(1);
       } else {
         setProducts([]);
         setHasMorePages(false);
@@ -254,28 +212,20 @@ const Products = () => {
     }
   };
 
-  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
   const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) {
-      return null;
-    }
-
+    if (!imageUrl) return null;
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
       return imageUrl;
     }
-
     if (imageUrl.startsWith("/")) {
       return `https://nethy.onrender.com${imageUrl}`;
     }
-
     if (imageUrl.startsWith("storage/")) {
       return `https://nethy.onrender.com/${imageUrl}`;
     }
-
     return `https://nethy.onrender.com/${imageUrl}`;
   };
 
-  // دالة للحصول على اسم الفئة حسب اللغة
   const getCategoryName = (category) => {
     if (
       i18n.language === "sv" &&
@@ -287,7 +237,6 @@ const Products = () => {
     return category.name || "Uncategorized";
   };
 
-  // دالة للحصول على اسم المنتج حسب اللغة
   const getProductName = (product) => {
     if (
       i18n.language === "sv" &&
@@ -299,12 +248,10 @@ const Products = () => {
     return product.name || t("common:noName");
   };
 
-  // دالة لتحديد سعر العرض الصحيح
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
 
-    // ⭐⭐⭐ حالة المنتج المجاني (discount_price = 0) ⭐⭐⭐
     if (discountPrice === 0 && price > 0) {
       return {
         displayPrice: 0,
@@ -315,7 +262,6 @@ const Products = () => {
       };
     }
 
-    // إذا كان discount_price موجود وأقل من price وأكبر من 0
     if (discountPrice > 0 && discountPrice < price) {
       return {
         displayPrice: discountPrice,
@@ -326,7 +272,6 @@ const Products = () => {
       };
     }
 
-    // إذا كان discount_price = 0 أو يساوي price أو أكبر من price
     return {
       displayPrice: price,
       originalPrice: null,
@@ -336,7 +281,6 @@ const Products = () => {
     };
   };
 
-  // دالة لعرض النجوم
   const renderStars = (rating) => {
     const stars = [];
     const ratingNum = parseFloat(rating) || 0;
@@ -352,7 +296,6 @@ const Products = () => {
     return stars;
   };
 
-  // إدارة الفئات المختارة
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) => {
       if (prev.includes(categoryId)) {
@@ -363,25 +306,21 @@ const Products = () => {
     });
   };
 
-  // إزالة الفئة المحددة
   const removeCategory = (categoryId) => {
     setSelectedCategories((prev) => prev.filter((id) => id !== categoryId));
   };
 
-  // مسح جميع الفلاتر
   const clearFilters = () => {
     setSelectedCategories([]);
     setCurrentPage(1);
   };
 
-  // تحميل الصفحة التالية
   const loadNextPage = () => {
     if (hasMorePages && !loadingMore) {
       setCurrentPage((prev) => prev + 1);
     }
   };
 
-  // العودة للصفحة السابقة
   const loadPreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
@@ -447,7 +386,6 @@ const Products = () => {
               </p>
             </div>
 
-            {/* فلتر */}
             <div className="flex items-center gap-4">
               {selectedCategories.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -562,7 +500,7 @@ const Products = () => {
             </div>
           )}
 
-          {/* المنتجات */}
+          {/* المنتجات - مع تعديل عدد الأعمدة */}
           <div className={showFilter ? "lg:col-span-3" : "lg:col-span-4"}>
             {error ? (
               <div className="text-center py-16">
@@ -601,8 +539,12 @@ const Products = () => {
               </div>
             ) : (
               <>
-                {/* شبكة المنتجات */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* شبكة المنتجات - ديناميكية: 4 منتجات بدون فلتر، 3 منتجات مع فلتر */}
+                <div
+                  className={`grid grid-cols-1 sm:grid-cols-2 ${
+                    showFilter ? "lg:grid-cols-3" : "lg:grid-cols-4"
+                  } gap-6`}
+                >
                   {products.map((product) => {
                     const priceInfo = getDisplayPrice(product);
                     const productName = getProductName(product);
@@ -613,7 +555,7 @@ const Products = () => {
                         key={product.id}
                         className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group"
                       >
-                        {/* صورة المنتج - معدلة مع معالجة الأخطاء */}
+                        {/* صورة المنتج */}
                         <div className="relative h-48 bg-gray-100 overflow-hidden">
                           {product.images && product.images[0] ? (
                             <>
@@ -624,7 +566,6 @@ const Products = () => {
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.style.display = "none";
-                                  // إضافة fallback
                                   const parent = e.target.parentElement;
                                   const fallback =
                                     document.createElement("div");
@@ -643,7 +584,7 @@ const Products = () => {
                             </div>
                           )}
 
-                          {/* علامة الخصم فقط */}
+                          {/* علامة الخصم */}
                           {priceInfo.hasDiscount && (
                             <div className="absolute top-3 left-3">
                               <div className="relative">
@@ -674,14 +615,12 @@ const Products = () => {
 
                         {/* معلومات المنتج */}
                         <div className="p-4">
-                          {/* الاسم */}
                           <h3 className="font-bold text-gray-800 text-lg mb-2 truncate hover:text-blue-600 transition-colors">
                             <Link to={`/product/${product.id}`}>
                               {productName}
                             </Link>
                           </h3>
 
-                          {/* التقييم */}
                           <div className="flex items-center mb-3">
                             <div className="flex">
                               {renderStars(product.product_rate)}
@@ -691,7 +630,6 @@ const Products = () => {
                             </span>
                           </div>
 
-                          {/* السعر */}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center">
                               {priceInfo.isFree ? (
@@ -722,7 +660,6 @@ const Products = () => {
                                 </>
                               )}
                             </div>
-                            {/* زر السلة */}
                             <button
                               onClick={() =>
                                 handleAddToCart(product.id, productName)
@@ -747,7 +684,6 @@ const Products = () => {
                             </button>
                           </div>
 
-                          {/* زر التفاصيل */}
                           <Link
                             to={`/product/${product.id}`}
                             className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 shadow-md hover:shadow-lg"
@@ -760,12 +696,10 @@ const Products = () => {
                   })}
                 </div>
 
-                {/* أزرار التنقل بين الصفحات - تظهر فقط عند عدم وجود فلترة */}
+                {/* أزرار التنقل بين الصفحات */}
                 {selectedCategories.length === 0 && products.length > 0 && (
                   <div className="mt-12 flex flex-col items-center gap-4">
-                    {/* أزرار التنقل */}
                     <div className="flex items-center gap-4">
-                      {/* زر الصفحة السابقة */}
                       <button
                         onClick={loadPreviousPage}
                         disabled={currentPage === 1 || loadingMore}
@@ -779,7 +713,6 @@ const Products = () => {
                         {t("common:previousPage")}
                       </button>
 
-                      {/* رقم الصفحة الحالية */}
                       <div className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg">
                         {t("common:page")} {currentPage}
                         {!hasMorePages &&
@@ -787,7 +720,6 @@ const Products = () => {
                           ` (${t("common:lastPage")})`}
                       </div>
 
-                      {/* زر الصفحة التالية */}
                       <button
                         onClick={loadNextPage}
                         disabled={!hasMorePages || loadingMore}
@@ -802,7 +734,6 @@ const Products = () => {
                       </button>
                     </div>
 
-                    {/* تحميل المزيد */}
                     {loadingMore && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
@@ -810,7 +741,6 @@ const Products = () => {
                       </div>
                     )}
 
-                    {/* معلومات الصفحة */}
                     <div className="text-gray-500 text-sm">
                       {t("common:showing")} {products.length}{" "}
                       {t("common:products")}
@@ -824,7 +754,6 @@ const Products = () => {
         </div>
       </div>
 
-      {/* CSS للأنيميشن */}
       <style>{`
         @keyframes fadeInDown {
           from {
