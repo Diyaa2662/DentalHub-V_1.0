@@ -378,15 +378,26 @@ const Header = () => {
                 )}
               </div>
 
+              {/* ✅ About - مع تمييز الرابط النشط */}
               <Link
                 to="/about"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className={`font-medium transition-colors ${
+                  isActive("/about", false)
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-700 hover:text-blue-600"
+                }`}
               >
                 {t("navbar:menu_about")}
               </Link>
+
+              {/* ✅ Contact - مع تمييز الرابط النشط */}
               <Link
                 to="/contact"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className={`font-medium transition-colors ${
+                  isActive("/contact", false)
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-700 hover:text-blue-600"
+                }`}
               >
                 {t("navbar:menu_contact")}
               </Link>
