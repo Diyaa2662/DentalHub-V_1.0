@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة مع دعم الفئات من الرابط
+// src/pages/Products.jsx - النسخة النهائية المعدلة
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -18,7 +18,7 @@ import {
 const Products = () => {
   const { t, i18n } = useTranslation(["common", "product"]);
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ إضافة useLocation لقراءة الرابط
+  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,40 +44,43 @@ const Products = () => {
   // حالة لإضافة المنتجات للسلة
   const [addingToCart, setAddingToCart] = useState({});
 
-  // ✅ ========== قراءة الفئة من الرابط وتطبيق الفلتر ==========
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const categoryId = params.get("category");
-
-    if (categoryId) {
-      const categoryIdNum = parseInt(categoryId);
-      if (
-        !isNaN(categoryIdNum) &&
-        !selectedCategories.includes(categoryIdNum)
-      ) {
-        setSelectedCategories([categoryIdNum]);
-        // فتح شريط الفلتر تلقائياً ليرى المستخدم الفلتر المطبق
-        setShowFilter(true);
+  // ✅ ========== جلب المنتجات حسب الفئة (باستخدام /categoryfilter) ==========
+  const fetchProductsByCategory = async (categoryId, isInitial = true) => {
+    try {
+      if (isInitial) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
       }
+
+      const response = await api.post("/categoryfilter", {
+        categories: [categoryId],
+      });
+
+      if (response.data && response.data.date) {
+        const allProducts = [];
+        response.data.date.forEach((categoryGroup) => {
+          if (categoryGroup.products && Array.isArray(categoryGroup.products)) {
+            allProducts.push(...categoryGroup.products);
+          }
+        });
+        setProducts(allProducts);
+        setHasMorePages(false);
+        setCurrentPage(1);
+      } else {
+        setProducts([]);
+        setHasMorePages(false);
+      }
+    } catch (err) {
+      setError(t("common:error"));
+      console.error("❌ Error fetching products by category:", err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search]); // يتغير عندما يتغير الرابط
+  };
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
-
-  useEffect(() => {
-    if (selectedCategories.length > 0) {
-      filterProducts();
-    } else {
-      fetchProducts();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategories]);
-
+  // ========== جلب المنتجات العادية (باجينيشن) ==========
   const fetchProducts = async () => {
     try {
       if (currentPage === 1) {
@@ -94,7 +97,8 @@ const Products = () => {
         response.data.date.length > 0
       ) {
         setProducts(response.data.date);
-        setHasMorePages(response.data.date.length === 10);
+        // ✅ بما أن كل صفحة تجيب 28 منتج، نقارن مع 28
+        setHasMorePages(response.data.date.length === 28);
       } else {
         if (currentPage === 1) {
           setProducts([]);
@@ -110,7 +114,26 @@ const Products = () => {
     }
   };
 
-  const fetchCategories = async () => {
+  // ========== قراءة الفئة من الرابط وتطبيق الفلتر ==========
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryId = params.get("category");
+
+    if (categoryId) {
+      const categoryIdNum = parseInt(categoryId);
+      if (!isNaN(categoryIdNum)) {
+        setSelectedCategories([categoryIdNum]);
+        setShowFilter(true);
+        fetchProductsByCategory(categoryIdNum, true);
+      }
+    } else {
+      fetchProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  // ========== جلب الفئات ==========
+  const fetchCategoriesList = async () => {
     try {
       const response = await api.get("/categories");
       if (response.data && response.data.data) {
@@ -121,6 +144,43 @@ const Products = () => {
       setCategories([]);
     }
   };
+
+  // ========== جلب الفئات عند تحميل الصفحة ==========
+  useEffect(() => {
+    fetchCategoriesList();
+  }, []);
+
+  // ========== مراقبة تغيير الصفحة (للباجينيشن فقط) ==========
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const hasCategoryParam = params.has("category");
+
+    if (
+      !hasCategoryParam &&
+      selectedCategories.length === 0 &&
+      currentPage > 1
+    ) {
+      fetchProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  // ========== مراقبة تغيير الفئات (للفلتر اليدوي من شريط الفلتر) ==========
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const hasCategoryParam = params.has("category");
+
+    // ✅ منع التنفيذ إذا كان هناك category في الرابط
+    if (hasCategoryParam) return;
+
+    if (selectedCategories.length > 0) {
+      filterProducts();
+    } else if (selectedCategories.length === 0 && !loading) {
+      setCurrentPage(1);
+      fetchProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategories]);
 
   const showNotification = (message, type = "success") => {
     setNotification({
@@ -202,6 +262,7 @@ const Products = () => {
     }
   };
 
+  // ========== فلتر المنتجات (للفلتر اليدوي من شريط الفلتر) ==========
   const filterProducts = async () => {
     try {
       setFilterLoading(true);
@@ -326,13 +387,27 @@ const Products = () => {
     });
   };
 
+  // ========== حذف فئة واحدة ==========
   const removeCategory = (categoryId) => {
-    setSelectedCategories((prev) => prev.filter((id) => id !== categoryId));
+    // إذا كان هناك فئة واحدة فقط، نمسح الفلتر بالكامل
+    if (selectedCategories.length === 1) {
+      setSelectedCategories([]);
+      setShowFilter(false);
+      setCurrentPage(1);
+      navigate("/products", { replace: true });
+      fetchProducts();
+    } else {
+      setSelectedCategories((prev) => prev.filter((id) => id !== categoryId));
+    }
   };
 
+  // ========== مسح جميع الفلاتر ==========
   const clearFilters = () => {
     setSelectedCategories([]);
+    setShowFilter(false);
     setCurrentPage(1);
+    navigate("/products", { replace: true });
+    fetchProducts();
   };
 
   const loadNextPage = () => {
@@ -520,7 +595,7 @@ const Products = () => {
             </div>
           )}
 
-          {/* المنتجات - مع تعديل عدد الأعمدة */}
+          {/* المنتجات */}
           <div className={showFilter ? "lg:col-span-3" : "lg:col-span-4"}>
             {error ? (
               <div className="text-center py-16">
@@ -559,7 +634,7 @@ const Products = () => {
               </div>
             ) : (
               <>
-                {/* شبكة المنتجات - ديناميكية: 4 منتجات بدون فلتر، 3 منتجات مع فلتر */}
+                {/* شبكة المنتجات */}
                 <div
                   className={`grid grid-cols-1 sm:grid-cols-2 ${
                     showFilter ? "lg:grid-cols-3" : "lg:grid-cols-4"
