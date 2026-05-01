@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة النهائية مع العلاقات
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -63,15 +63,40 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
     };
   };
 
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
-      return imageUrl;
-    if (imageUrl.startsWith("/"))
-      return `https://nethy.onrender.com${imageUrl}`;
-    if (imageUrl.startsWith("storage/"))
-      return `https://nethy.onrender.com/${imageUrl}`;
-    return `https://nethy.onrender.com/${imageUrl}`;
+  // ✅ دالة لإنشاء رابط الصورة (مع دعم external_url)
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    // الأولوية للـ url (الملف المحلي)
+    if (
+      image.url &&
+      typeof image.url === "string" &&
+      image.url.trim() &&
+      image.url !== "there is no saved image"
+    ) {
+      if (image.url.startsWith("http://") || image.url.startsWith("https://")) {
+        return image.url;
+      }
+      if (image.url.startsWith("/")) {
+        return `https://nethy.onrender.com${image.url}`;
+      }
+      if (image.url.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${image.url}`;
+      }
+      return `https://nethy.onrender.com/${image.url}`;
+    }
+
+    // إذا لم يكن هناك url صالح، نستخدم external_url
+    if (
+      image.external_url &&
+      typeof image.external_url === "string" &&
+      image.external_url.trim() &&
+      image.external_url !== "there is no external url"
+    ) {
+      return image.external_url;
+    }
+
+    return null;
   };
 
   const renderStars = (rating) => {
@@ -99,13 +124,15 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
 
   const priceInfo = getDisplayPrice(product);
   const productName = getProductName(product);
+  const productImageUrl =
+    product.images && product.images[0] ? getImageUrl(product.images[0]) : null;
 
   return (
     <div className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group">
       <div className="relative h-40 bg-gray-100 overflow-hidden">
-        {product.images && product.images[0] ? (
+        {productImageUrl ? (
           <img
-            src={getFullImageUrl(product.images[0].url)}
+            src={productImageUrl}
             alt={productName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
@@ -216,6 +243,81 @@ const ProductDetails = () => {
     fetchProductDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, i18n.language]);
+
+  // ✅ دالة لإنشاء رابط الصورة (مع دعم external_url)
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    // الأولوية للـ url (الملف المحلي)
+    if (
+      image.url &&
+      typeof image.url === "string" &&
+      image.url.trim() &&
+      image.url !== "there is no saved image"
+    ) {
+      if (image.url.startsWith("http://") || image.url.startsWith("https://")) {
+        return image.url;
+      }
+      if (image.url.startsWith("/")) {
+        return `https://nethy.onrender.com${image.url}`;
+      }
+      if (image.url.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${image.url}`;
+      }
+      return `https://nethy.onrender.com/${image.url}`;
+    }
+
+    // إذا لم يكن هناك url صالح، نستخدم external_url
+    if (
+      image.external_url &&
+      typeof image.external_url === "string" &&
+      image.external_url.trim() &&
+      image.external_url !== "there is no external url"
+    ) {
+      return image.external_url;
+    }
+
+    return null;
+  };
+
+  // ✅ دالة لإنشاء رابط الملف (مع دعم external_url)
+  const getFileUrl = (file) => {
+    if (!file) return null;
+
+    // الأولوية للـ file_path (الملف المحلي)
+    if (
+      file.file_path &&
+      typeof file.file_path === "string" &&
+      file.file_path.trim() &&
+      file.file_path !== "there is no saved file"
+    ) {
+      if (
+        file.file_path.startsWith("http://") ||
+        file.file_path.startsWith("https://")
+      ) {
+        return file.file_path;
+      }
+      if (file.file_path.startsWith("/")) {
+        return `https://nethy.onrender.com${file.file_path}`;
+      }
+      if (file.file_path.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${file.file_path}`;
+      }
+      return `https://nethy.onrender.com/${file.file_path}`;
+    }
+
+    // إذا لم يكن هناك file_path صالح، نستخدم external_url
+    if (
+      file.external_url &&
+      typeof file.external_url === "string" &&
+      file.external_url.trim() &&
+      file.external_url !== "there is no external url"
+    ) {
+      return file.external_url;
+    }
+
+    return null;
+  };
 
   const fetchProductDetails = async () => {
     try {
@@ -361,28 +463,6 @@ const ProductDetails = () => {
     } finally {
       setAddingToCart(false);
     }
-  };
-
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
-      return imageUrl;
-    if (imageUrl.startsWith("/"))
-      return `https://nethy.onrender.com${imageUrl}`;
-    if (imageUrl.startsWith("storage/"))
-      return `https://nethy.onrender.com/${imageUrl}`;
-    return `https://nethy.onrender.com/${imageUrl}`;
-  };
-
-  const getFileUrl = (filePath) => {
-    if (!filePath) return null;
-    if (filePath.startsWith("http://") || filePath.startsWith("https://"))
-      return filePath;
-    if (filePath.startsWith("/"))
-      return `https://nethy.onrender.com${filePath}`;
-    if (filePath.startsWith("storage/"))
-      return `https://nethy.onrender.com/${filePath}`;
-    return `https://nethy.onrender.com/${filePath}`;
   };
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
@@ -552,9 +632,7 @@ const ProductDetails = () => {
               {product.images && product.images.length > 0 ? (
                 <>
                   <img
-                    src={getFullImageUrl(
-                      product.images[selectedImageIndex].url,
-                    )}
+                    src={getImageUrl(product.images[selectedImageIndex])}
                     alt={getProductName()}
                     className="w-full h-[350px] object-contain p-4"
                     onError={(e) => {
@@ -610,7 +688,7 @@ const ProductDetails = () => {
                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}
                   >
                     <img
-                      src={getFullImageUrl(image.url)}
+                      src={getImageUrl(image)}
                       alt={`${getProductName()} - ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -827,21 +905,24 @@ const ProductDetails = () => {
                         {t("product:safetySheets")}
                       </h3>
                       <div className="space-y-2">
-                        {product.safty_sheets.map((file, index) => (
-                          <a
-                            key={file.id}
-                            href={getFileUrl(file.file_path)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                          >
-                            <div className="flex items-center">
-                              <FaFilePdf className="text-red-500 mr-3" />
-                              <span>Safety Sheet {index + 1}</span>
-                            </div>
-                            <FaArrowRight className="text-gray-400" />
-                          </a>
-                        ))}
+                        {product.safty_sheets.map((file, index) => {
+                          const fileUrl = getFileUrl(file);
+                          return fileUrl ? (
+                            <a
+                              key={file.id}
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                            >
+                              <div className="flex items-center">
+                                <FaFilePdf className="text-red-500 mr-3" />
+                                <span>Safety Sheet {index + 1}</span>
+                              </div>
+                              <FaArrowRight className="text-gray-400" />
+                            </a>
+                          ) : null;
+                        })}
                       </div>
                     </div>
                   )}
@@ -852,21 +933,24 @@ const ProductDetails = () => {
                         {t("product:instructionSheets")}
                       </h3>
                       <div className="space-y-2">
-                        {product.instraction_sheets.map((file, index) => (
-                          <a
-                            key={file.id}
-                            href={getFileUrl(file.file_path)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                          >
-                            <div className="flex items-center">
-                              <FaFilePdf className="text-red-500 mr-3" />
-                              <span>Instruction Sheet {index + 1}</span>
-                            </div>
-                            <FaArrowRight className="text-gray-400" />
-                          </a>
-                        ))}
+                        {product.instraction_sheets.map((file, index) => {
+                          const fileUrl = getFileUrl(file);
+                          return fileUrl ? (
+                            <a
+                              key={file.id}
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                            >
+                              <div className="flex items-center">
+                                <FaFilePdf className="text-red-500 mr-3" />
+                                <span>Instruction Sheet {index + 1}</span>
+                              </div>
+                              <FaArrowRight className="text-gray-400" />
+                            </a>
+                          ) : null;
+                        })}
                       </div>
                     </div>
                   )}
@@ -877,21 +961,24 @@ const ProductDetails = () => {
                         {t("product:infoMaterials")}
                       </h3>
                       <div className="space-y-2">
-                        {product.info_materials.map((file, index) => (
-                          <a
-                            key={file.id}
-                            href={getFileUrl(file.file_path)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                          >
-                            <div className="flex items-center">
-                              <FaFilePdf className="text-red-500 mr-3" />
-                              <span>Info Material {index + 1}</span>
-                            </div>
-                            <FaArrowRight className="text-gray-400" />
-                          </a>
-                        ))}
+                        {product.info_materials.map((file, index) => {
+                          const fileUrl = getFileUrl(file);
+                          return fileUrl ? (
+                            <a
+                              key={file.id}
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                            >
+                              <div className="flex items-center">
+                                <FaFilePdf className="text-red-500 mr-3" />
+                                <span>Info Material {index + 1}</span>
+                              </div>
+                              <FaArrowRight className="text-gray-400" />
+                            </a>
+                          ) : null;
+                        })}
                       </div>
                     </div>
                   )}

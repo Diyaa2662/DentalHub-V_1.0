@@ -1,4 +1,4 @@
-// src/pages/Home.jsx - النسخة المعدلة مع هيكل البيانات الجديد
+// src/pages/Home.jsx - النسخة المعدلة مع دعم external_url
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -84,6 +84,51 @@ const Home = () => {
       clearInterval(autoSlideInterval.current);
       autoSlideInterval.current = null;
     }
+  };
+
+  // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    // الأولوية للـ url (الملف المحلي)
+    if (
+      image.url &&
+      typeof image.url === "string" &&
+      image.url.trim() &&
+      image.url !== "there is no saved image"
+    ) {
+      if (image.url.startsWith("http://") || image.url.startsWith("https://")) {
+        return image.url;
+      }
+      if (image.url.startsWith("/")) {
+        return `https://nethy.onrender.com${image.url}`;
+      }
+      if (image.url.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${image.url}`;
+      }
+      return `https://nethy.onrender.com/${image.url}`;
+    }
+
+    // إذا لم يكن هناك url صالح، نستخدم external_url
+    if (
+      image.external_url &&
+      typeof image.external_url === "string" &&
+      image.external_url.trim() &&
+      image.external_url !== "there is no external url"
+    ) {
+      return image.external_url;
+    }
+
+    return null;
+  };
+
+  // ✅ دالة للحصول على أول صورة صالحة للمنتج
+  const getProductImageUrl = (product) => {
+    if (product.images && product.images.length > 0) {
+      const image = product.images[0];
+      return getImageUrl(image);
+    }
+    return null;
   };
 
   const fetchHomeData = async () => {
@@ -247,26 +292,6 @@ const Home = () => {
         behavior: "smooth",
       });
     }
-  };
-
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) {
-      return null;
-    }
-
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-      return imageUrl;
-    }
-
-    if (imageUrl.startsWith("/")) {
-      return `https://nethy.onrender.com${imageUrl}`;
-    }
-
-    if (imageUrl.startsWith("storage/")) {
-      return `https://nethy.onrender.com/${imageUrl}`;
-    }
-
-    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   const getProductName = (product) => {
@@ -442,6 +467,7 @@ const Home = () => {
                     product,
                     true,
                   );
+                  const productImageUrl = getProductImageUrl(product);
 
                   return (
                     <div
@@ -452,9 +478,9 @@ const Home = () => {
                         // تصميم الموبايل - عمودي
                         <div className="h-full flex flex-col items-center justify-center px-4 py-8">
                           <div className="w-full max-w-xs mb-6">
-                            {product.images && product.images[0] ? (
+                            {productImageUrl ? (
                               <img
-                                src={getFullImageUrl(product.images[0].url)}
+                                src={productImageUrl}
                                 alt={productName}
                                 className="rounded-lg shadow-xl w-full h-auto object-contain max-h-56"
                                 onError={(e) => {
@@ -601,9 +627,9 @@ const Home = () => {
 
                           <div className="w-1/2 flex justify-center">
                             <div className="max-w-lg">
-                              {product.images && product.images[0] ? (
+                              {productImageUrl ? (
                                 <img
-                                  src={getFullImageUrl(product.images[0].url)}
+                                  src={productImageUrl}
                                   alt={productName}
                                   className="rounded-lg shadow-xl w-full h-auto object-contain max-h-80"
                                   onError={(e) => {
@@ -728,6 +754,7 @@ const Home = () => {
                 {category.products.map((product) => {
                   const priceInfo = getDisplayPrice(product);
                   const productName = getProductName(product);
+                  const productImageUrl = getProductImageUrl(product);
 
                   return (
                     <div
@@ -736,10 +763,10 @@ const Home = () => {
                     >
                       {/* صورة المنتج */}
                       <div className="relative h-40 bg-gray-100 overflow-hidden">
-                        {product.images && product.images[0] ? (
+                        {productImageUrl ? (
                           <>
                             <img
-                              src={getFullImageUrl(product.images[0].url)}
+                              src={productImageUrl}
                               alt={productName}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {

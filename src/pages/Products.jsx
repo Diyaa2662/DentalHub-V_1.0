@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة النهائية المعدلة
+// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -43,6 +43,51 @@ const Products = () => {
 
   // حالة لإضافة المنتجات للسلة
   const [addingToCart, setAddingToCart] = useState({});
+
+  // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    // الأولوية للـ url (الملف المحلي)
+    if (
+      image.url &&
+      typeof image.url === "string" &&
+      image.url.trim() &&
+      image.url !== "there is no saved image"
+    ) {
+      if (image.url.startsWith("http://") || image.url.startsWith("https://")) {
+        return image.url;
+      }
+      if (image.url.startsWith("/")) {
+        return `https://nethy.onrender.com${image.url}`;
+      }
+      if (image.url.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${image.url}`;
+      }
+      return `https://nethy.onrender.com/${image.url}`;
+    }
+
+    // إذا لم يكن هناك url صالح، نستخدم external_url
+    if (
+      image.external_url &&
+      typeof image.external_url === "string" &&
+      image.external_url.trim() &&
+      image.external_url !== "there is no external url"
+    ) {
+      return image.external_url;
+    }
+
+    return null;
+  };
+
+  // ✅ دالة للحصول على أول صورة صالحة للمنتج
+  const getProductImageUrl = (product) => {
+    if (product.images && product.images.length > 0) {
+      const image = product.images[0];
+      return getImageUrl(image);
+    }
+    return null;
+  };
 
   // ✅ ========== جلب المنتجات حسب الفئة (باستخدام /categoryfilter) ==========
   const fetchProductsByCategory = async (categoryId, isInitial = true) => {
@@ -291,20 +336,6 @@ const Products = () => {
     } finally {
       setFilterLoading(false);
     }
-  };
-
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-      return imageUrl;
-    }
-    if (imageUrl.startsWith("/")) {
-      return `https://nethy.onrender.com${imageUrl}`;
-    }
-    if (imageUrl.startsWith("storage/")) {
-      return `https://nethy.onrender.com/${imageUrl}`;
-    }
-    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   const getCategoryName = (category) => {
@@ -644,6 +675,7 @@ const Products = () => {
                     const priceInfo = getDisplayPrice(product);
                     const productName = getProductName(product);
                     const isAdding = addingToCart[product.id] || false;
+                    const productImageUrl = getProductImageUrl(product);
 
                     return (
                       <div
@@ -652,10 +684,10 @@ const Products = () => {
                       >
                         {/* صورة المنتج */}
                         <div className="relative h-48 bg-gray-100 overflow-hidden">
-                          {product.images && product.images[0] ? (
+                          {productImageUrl ? (
                             <>
                               <img
-                                src={getFullImageUrl(product.images[0].url)}
+                                src={productImageUrl}
                                 alt={productName}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 onError={(e) => {

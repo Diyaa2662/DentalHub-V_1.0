@@ -1,4 +1,4 @@
-// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدل - إزالة via.placeholder.com)
+// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدلة لدعم external_url)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -39,6 +39,42 @@ const Cart = () => {
     fetchCartData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
+  const getImageUrl = (image) => {
+    if (!image) return null;
+
+    // الأولوية للـ url (الملف المحلي)
+    if (
+      image.url &&
+      typeof image.url === "string" &&
+      image.url.trim() &&
+      image.url !== "there is no saved image"
+    ) {
+      if (image.url.startsWith("http://") || image.url.startsWith("https://")) {
+        return image.url;
+      }
+      if (image.url.startsWith("/")) {
+        return `https://nethy.onrender.com${image.url}`;
+      }
+      if (image.url.startsWith("storage/")) {
+        return `https://nethy.onrender.com/${image.url}`;
+      }
+      return `https://nethy.onrender.com/${image.url}`;
+    }
+
+    // إذا لم يكن هناك url صالح، نستخدم external_url
+    if (
+      image.external_url &&
+      typeof image.external_url === "string" &&
+      image.external_url.trim() &&
+      image.external_url !== "there is no external url"
+    ) {
+      return image.external_url;
+    }
+
+    return null;
+  };
 
   const fetchCartData = async () => {
     const token = localStorage.getItem("customerToken");
@@ -128,14 +164,12 @@ const Cart = () => {
     setUpdatingQuantity((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      // نجد الـ order_id من بيانات السلة
       const orderId = cartData?.order?.id;
       if (!orderId) {
         showNotification(t("common:orderNotFound"), "error");
         return;
       }
 
-      // أولاً: حذف المنتج من السلة
       await api.post(
         `/removeitemfromorder/${orderId}`,
         {
@@ -149,10 +183,7 @@ const Cart = () => {
         },
       );
 
-      // انتظر قليلاً قبل الإضافة الجديدة
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // ثانياً: إضافة المنتج بالكمية الجديدة
 
       const addResponse = await api.post(
         "/additemtoorder",
@@ -174,10 +205,8 @@ const Cart = () => {
           "success",
         );
 
-        // إعادة جلب بيانات السلة المحدثة
         fetchCartData();
 
-        // حذف الكمية المؤقتة بعد الحفظ
         setTempQuantities((prev) => {
           const newState = { ...prev };
           delete newState[productId];
@@ -192,7 +221,6 @@ const Cart = () => {
         localStorage.removeItem("customerData");
         navigate("/login");
       } else if (err.response?.status === 404) {
-        // إذا فشل الحذف، نحاول الإضافة مباشرة
         try {
           await api.post(
             "/additemtoorder",
@@ -242,7 +270,6 @@ const Cart = () => {
       return;
     }
 
-    // نجد الـ order_id من بيانات السلة
     const orderId = cartData?.order?.id;
     if (!orderId) {
       showNotification(t("common:orderNotFound"), "error");
@@ -260,7 +287,6 @@ const Cart = () => {
     }
 
     try {
-      // استخدام order_id في الرابط
       const response = await api.post(
         `/removeitemfromorder/${orderId}`,
         {
@@ -279,7 +305,7 @@ const Cart = () => {
           response.data.message || t("cart:itemRemoved"),
           "success",
         );
-        fetchCartData(); // إعادة جلب بيانات السلة المحدثة
+        fetchCartData();
       }
     } catch (err) {
       console.error("❌ Error removing item:", err);
@@ -311,14 +337,13 @@ const Cart = () => {
       return;
     }
 
-    // رسالة تأكيد
     const confirmMessage =
       i18n.language === "sv"
         ? `Är du säker på att du vill slutföra beställningen ${cartData.order.order_number}?\n\nTotalt: ${cartData.order.currency} ${parseFloat(cartData.order.total_amount).toFixed(2)}\n\nDenna åtgärd kan inte ångras.`
         : `Are you sure you want to complete order ${cartData.order.order_number}?\n\nTotal: ${cartData.order.currency} ${parseFloat(cartData.order.total_amount).toFixed(2)}\n\nThis action cannot be undone.`;
 
     if (!window.confirm(confirmMessage)) {
-      return; // المستخدم ألغى العملية
+      return;
     }
 
     setCheckingOut(true);
@@ -326,7 +351,7 @@ const Cart = () => {
     try {
       const response = await api.post(
         `/checkout/${orderId}`,
-        {}, // جسم الطلب فارغ
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -341,12 +366,8 @@ const Cart = () => {
           "success",
         );
 
-        // إخفاء التنبيه بعد 3 ثواني
         setTimeout(() => {
-          // توجيه المستخدم للصفحة الرئيسية بعد نجاح الشيك اوت
           navigate("/products");
-
-          // إعادة تحميل الصفحة بعد توجيه ناجح
           setTimeout(() => {
             window.location.reload();
           }, 100);
@@ -394,27 +415,6 @@ const Cart = () => {
     } finally {
       setCheckingOut(false);
     }
-  };
-
-  // دالة لبناء رابط الصورة الكامل - معدلة (بدون placeholder)
-  const getFullImageUrl = (imageUrl) => {
-    if (!imageUrl) {
-      return null;
-    }
-
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-      return imageUrl;
-    }
-
-    if (imageUrl.startsWith("/")) {
-      return `https://nethy.onrender.com${imageUrl}`;
-    }
-
-    if (imageUrl.startsWith("storage/")) {
-      return `https://nethy.onrender.com/${imageUrl}`;
-    }
-
-    return `https://nethy.onrender.com/${imageUrl}`;
   };
 
   // دالة للحصول على اسم المنتج حسب اللغة
@@ -621,18 +621,24 @@ const Cart = () => {
                     );
                     const hasDiscount = discountAmount > 0;
 
+                    // ✅ الحصول على رابط الصورة باستخدام الدالة الجديدة
+                    const productImageUrl =
+                      product.images && product.images[0]
+                        ? getImageUrl(product.images[0])
+                        : null;
+
                     return (
                       <div
                         key={product.id}
                         className="p-6 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex flex-col md:flex-row gap-6">
-                          {/* صورة المنتج - معدلة مع معالجة الأخطاء */}
+                          {/* صورة المنتج - معدلة مع دعم external_url */}
                           <div className="md:w-32">
                             <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                              {product.images && product.images[0] ? (
+                              {productImageUrl ? (
                                 <img
-                                  src={getFullImageUrl(product.images[0].url)}
+                                  src={productImageUrl}
                                   alt={productName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
@@ -644,7 +650,7 @@ const Cart = () => {
                                     fallback.className =
                                       "w-full h-full flex items-center justify-center text-gray-400 bg-gray-100";
                                     fallback.innerHTML =
-                                      '<FaTag className="text-3xl opacity-50" />';
+                                      '<svg class="w-8 h-8 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
                                     parent.appendChild(fallback);
                                   }}
                                 />
