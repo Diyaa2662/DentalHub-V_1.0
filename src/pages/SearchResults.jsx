@@ -66,12 +66,12 @@ const SearchResults = () => {
         return image.url;
       }
       if (image.url.startsWith("/")) {
-        return `https://nethy.onrender.com${image.url}`;
+        return `http://back.neotonicglobal.com${image.url}`;
       }
       if (image.url.startsWith("storage/")) {
-        return `https://nethy.onrender.com/${image.url}`;
+        return `http://back.neotonicglobal.com/${image.url}`;
       }
-      return `https://nethy.onrender.com/${image.url}`;
+      return `http://back.neotonicglobal.com/${image.url}`;
     }
 
     // إذا لم يكن هناك url صالح، نستخدم external_url
