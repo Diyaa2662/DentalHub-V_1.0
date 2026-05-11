@@ -141,7 +141,7 @@ const Cart = () => {
         ?.quantity ||
       1;
 
-    let newQuantity = currentQuantity + change;
+    let newQuantity = parseInt(currentQuantity) + change;
     if (newQuantity < 1) newQuantity = 1;
 
     setTempQuantities((prev) => ({

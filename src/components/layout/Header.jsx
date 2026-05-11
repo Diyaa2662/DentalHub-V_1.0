@@ -66,10 +66,9 @@ const Header = () => {
     try {
       setLoadingCategories(true);
       const response = await api.get("/topbarlist", { timeout: 10000 });
+
       if (response.data && response.data.data) {
-        const mainCategories = response.data.data.filter(
-          (cat) => cat.parent_id === null,
-        );
+        const mainCategories = response.data.data;
         setCategories(mainCategories);
       }
     } catch (err) {
