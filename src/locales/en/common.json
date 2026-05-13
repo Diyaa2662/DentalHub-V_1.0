@@ -54,5 +54,7 @@
   "orderNotFound": "Order not found",
   "shoppingCart": "Shopping Cart",
   "goBack": "Go Back",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "showMore": "Show More",
+  "showingCategories": "Showing categories"
 }

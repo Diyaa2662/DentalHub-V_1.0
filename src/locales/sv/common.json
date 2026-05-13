@@ -54,5 +54,7 @@
   "orderNotFound": "Order hittades inte",
   "shoppingCart": "Kundvagn",
   "goBack": "Gå Tillbaka",
-  "refresh": "Uppdatera"
+  "refresh": "Uppdatera",
+  "showMore": "Visa Mer",
+  "showingCategories": "Visar kategorier"
 }

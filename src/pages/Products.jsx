@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url
+// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -13,6 +13,7 @@ import {
   FaTimes,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaChevronDown,
 } from "react-icons/fa";
 
 const Products = () => {
@@ -36,6 +37,11 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [filterLoading, setFilterLoading] = useState(false);
 
+  // ✅ حالة لعرض المزيد من الفئات
+  const [visibleCategoriesCount, setVisibleCategoriesCount] = useState(15);
+  const [loadingMoreCategories, setLoadingMoreCategories] = useState(false);
+  const CATEGORIES_INCREMENT = 15;
+
   // حالة للصفحات
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMorePages, setHasMorePages] = useState(true);
@@ -44,11 +50,28 @@ const Products = () => {
   // حالة لإضافة المنتجات للسلة
   const [addingToCart, setAddingToCart] = useState({});
 
+  // ✅ الفئات المعروضة حالياً
+  const visibleCategories = categories.slice(0, visibleCategoriesCount);
+  const hasMoreCategories = categories.length > visibleCategoriesCount;
+
+  // ✅ دالة لتحميل المزيد من الفئات
+  const loadMoreCategories = () => {
+    setLoadingMoreCategories(true);
+    setTimeout(() => {
+      setVisibleCategoriesCount((prev) => prev + CATEGORIES_INCREMENT);
+      setLoadingMoreCategories(false);
+    }, 300);
+  };
+
+  // ✅ دالة لإعادة ضبط عدد الفئات المعروضة
+  const resetCategoriesVisibility = () => {
+    setVisibleCategoriesCount(CATEGORIES_INCREMENT);
+  };
+
   // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
   const getImageUrl = (image) => {
     if (!image) return null;
 
-    // الأولوية للـ url (الملف المحلي)
     if (
       image.url &&
       typeof image.url === "string" &&
@@ -67,7 +90,6 @@ const Products = () => {
       return `https://back.neotonicglobal.com/${image.url}`;
     }
 
-    // إذا لم يكن هناك url صالح، نستخدم external_url
     if (
       image.external_url &&
       typeof image.external_url === "string" &&
@@ -142,7 +164,6 @@ const Products = () => {
         response.data.date.length > 0
       ) {
         setProducts(response.data.date);
-        // ✅ بما أن كل صفحة تجيب 28 منتج، نقارن مع 28
         setHasMorePages(response.data.date.length === 28);
       } else {
         if (currentPage === 1) {
@@ -182,7 +203,11 @@ const Products = () => {
     try {
       const response = await api.get("/categories");
       if (response.data && response.data.data) {
-        setCategories(response.data.data);
+        // ✅ فلترة الفئات النشطة فقط
+        const activeCategories = response.data.data.filter(
+          (cat) => cat.enabled === true,
+        );
+        setCategories(activeCategories);
       }
     } catch (err) {
       console.error("❌ Error fetching categories:", err);
@@ -194,6 +219,13 @@ const Products = () => {
   useEffect(() => {
     fetchCategoriesList();
   }, []);
+
+  // ========== إعادة ضبط عدد الفئات المعروضة عند إغلاق الفلتر ==========
+  useEffect(() => {
+    if (!showFilter) {
+      resetCategoriesVisibility();
+    }
+  }, [showFilter]);
 
   // ========== مراقبة تغيير الصفحة (للباجينيشن فقط) ==========
   useEffect(() => {
@@ -215,7 +247,6 @@ const Products = () => {
     const params = new URLSearchParams(location.search);
     const hasCategoryParam = params.has("category");
 
-    // ✅ منع التنفيذ إذا كان هناك category في الرابط
     if (hasCategoryParam) return;
 
     if (selectedCategories.length > 0) {
@@ -420,7 +451,6 @@ const Products = () => {
 
   // ========== حذف فئة واحدة ==========
   const removeCategory = (categoryId) => {
-    // إذا كان هناك فئة واحدة فقط، نمسح الفلتر بالكامل
     if (selectedCategories.length === 1) {
       setSelectedCategories([]);
       setShowFilter(false);
@@ -578,6 +608,13 @@ const Products = () => {
                   </button>
                 </div>
 
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500">
+                    {t("common:showingCategories")}: {visibleCategories.length}{" "}
+                    / {categories.length}
+                  </p>
+                </div>
+
                 {filterLoading ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600 mx-auto"></div>
@@ -590,25 +627,52 @@ const Products = () => {
                     {t("common:noCategories")}
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`category-${category.id}`}
-                          checked={selectedCategories.includes(category.id)}
-                          onChange={() => toggleCategory(category.id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <label
-                          htmlFor={`category-${category.id}`}
-                          className="ml-3 text-gray-700 cursor-pointer hover:text-blue-600 transition-colors"
+                  <>
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                      {visibleCategories.map((category) => (
+                        <div key={category.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`category-${category.id}`}
+                            checked={selectedCategories.includes(category.id)}
+                            onChange={() => toggleCategory(category.id)}
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor={`category-${category.id}`}
+                            className="ml-3 text-gray-700 cursor-pointer hover:text-blue-600 transition-colors truncate"
+                            title={getCategoryName(category)}
+                          >
+                            {getCategoryName(category)}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* زر عرض المزيد من الفئات */}
+                    {hasMoreCategories && (
+                      <div className="mt-4">
+                        <button
+                          onClick={loadMoreCategories}
+                          disabled={loadingMoreCategories}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                         >
-                          {getCategoryName(category)}
-                        </label>
+                          {loadingMoreCategories ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-blue-600"></div>
+                              {t("common:loading")}
+                            </>
+                          ) : (
+                            <>
+                              <FaChevronDown size={12} />
+                              {t("common:showMore")} (+
+                              {categories.length - visibleCategoriesCount})
+                            </>
+                          )}
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
 
                 <div className="mt-8 pt-6 border-t border-gray-200">

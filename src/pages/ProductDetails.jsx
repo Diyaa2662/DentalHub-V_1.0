@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -67,7 +67,6 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
   const getImageUrl = (image) => {
     if (!image) return null;
 
-    // الأولوية للـ url (الملف المحلي)
     if (
       image.url &&
       typeof image.url === "string" &&
@@ -86,7 +85,6 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
       return `https://back.neotonicglobal.com/${image.url}`;
     }
 
-    // إذا لم يكن هناك url صالح، نستخدم external_url
     if (
       image.external_url &&
       typeof image.external_url === "string" &&
@@ -225,14 +223,12 @@ const ProductDetails = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
 
-  // حالات للمنتجات المرتبطة
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [accessoryProducts, setAccessoryProducts] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [variationProducts, setVariationProducts] = useState([]);
   const [loadingRelations, setLoadingRelations] = useState(false);
 
-  // حالة للتنبيهات
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -244,11 +240,19 @@ const ProductDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, i18n.language]);
 
-  // ✅ دالة لإنشاء رابط الصورة (مع دعم external_url)
+  // ✅ دالة للتمرير الأفقي
+  const scrollContainer = (direction, containerId) => {
+    const container = document.getElementById(containerId);
+    if (container) {
+      const scrollAmount = direction === "left" ? -300 : 300;
+      container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  // ✅ دالة لإنشاء رابط الصورة
   const getImageUrl = (image) => {
     if (!image) return null;
 
-    // الأولوية للـ url (الملف المحلي)
     if (
       image.url &&
       typeof image.url === "string" &&
@@ -267,7 +271,6 @@ const ProductDetails = () => {
       return `https://back.neotonicglobal.com/${image.url}`;
     }
 
-    // إذا لم يكن هناك url صالح، نستخدم external_url
     if (
       image.external_url &&
       typeof image.external_url === "string" &&
@@ -280,11 +283,10 @@ const ProductDetails = () => {
     return null;
   };
 
-  // ✅ دالة لإنشاء رابط الملف (مع دعم external_url)
+  // ✅ دالة لإنشاء رابط الملف
   const getFileUrl = (file) => {
     if (!file) return null;
 
-    // الأولوية للـ file_path (الملف المحلي)
     if (
       file.file_path &&
       typeof file.file_path === "string" &&
@@ -306,7 +308,6 @@ const ProductDetails = () => {
       return `https://back.neotonicglobal.com/${file.file_path}`;
     }
 
-    // إذا لم يكن هناك file_path صالح، نستخدم external_url
     if (
       file.external_url &&
       typeof file.external_url === "string" &&
@@ -531,6 +532,19 @@ const ProductDetails = () => {
     return stars;
   };
 
+  // ✅ التحقق من وجود معلومات إضافية (يدعم المصفوفة)
+  const hasAdditionalInfo =
+    product?.additonalinfo &&
+    Array.isArray(product.additonalinfo) &&
+    product.additonalinfo.length > 0;
+
+  const hasSafetySheets =
+    product?.safty_sheets && product.safty_sheets.length > 0;
+  const hasInstructionSheets =
+    product?.instraction_sheets && product.instraction_sheets.length > 0;
+  const hasInfoMaterials =
+    product?.info_materials && product.info_materials.length > 0;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -570,15 +584,6 @@ const ProductDetails = () => {
     : hasDiscount
       ? Math.round(((price - discountPrice) / price) * 100)
       : 0;
-
-  const hasSafetySheets =
-    product.safty_sheets && product.safty_sheets.length > 0;
-  const hasInstructionSheets =
-    product.instraction_sheets && product.instraction_sheets.length > 0;
-  const hasInfoMaterials =
-    product.info_materials && product.info_materials.length > 0;
-  const hasAdditionalInfo =
-    product.additonalinfo && product.additonalinfo.content?.trim();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -883,18 +888,27 @@ const ProductDetails = () => {
                 </p>
               </div>
             )}
+
             {activeTab === "additional" && hasAdditionalInfo && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                {product.additonalinfo.title && (
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">
-                    {product.additonalinfo.title}
-                  </h3>
-                )}
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {product.additonalinfo.content}
-                </p>
+                <div className="space-y-4">
+                  {product.additonalinfo.map((info) => (
+                    <div
+                      key={info.id}
+                      className="pb-3 border-b border-gray-100 last:border-0"
+                    >
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">
+                        {info.title}
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {info.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
             {activeTab === "files" && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <div className="space-y-6">
@@ -969,7 +983,7 @@ const ProductDetails = () => {
                               href={fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                              className="flex-items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                             >
                               <div className="flex items-center">
                                 <FaFilePdf className="text-red-500 mr-3" />
@@ -988,7 +1002,7 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* ========== أقسام المنتجات المرتبطة ========== */}
+        {/* ========== أقسام المنتجات المرتبطة مع أزرار التحريك ========== */}
         {!loadingRelations && (
           <>
             {/* Related Products */}
@@ -999,8 +1013,28 @@ const ProductDetails = () => {
                     <FaLink className="mr-2 text-blue-500" />{" "}
                     {t("product:relatedProducts")}
                   </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => scrollContainer("left", "related-scroll")}
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll left"
+                    >
+                      <FaChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() => scrollContainer("right", "related-scroll")}
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll right"
+                    >
+                      <FaChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                <div
+                  id="related-scroll"
+                  className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4"
+                  style={{ scrollBehavior: "smooth" }}
+                >
                   {relatedProducts.map((prod) => (
                     <RelatedProductCard
                       key={prod.id}
@@ -1020,8 +1054,32 @@ const ProductDetails = () => {
                     <FaCogs className="mr-2 text-green-500" />{" "}
                     {t("product:accessories")}
                   </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        scrollContainer("left", "accessory-scroll")
+                      }
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll left"
+                    >
+                      <FaChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        scrollContainer("right", "accessory-scroll")
+                      }
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll right"
+                    >
+                      <FaChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                <div
+                  id="accessory-scroll"
+                  className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4"
+                  style={{ scrollBehavior: "smooth" }}
+                >
                   {accessoryProducts.map((prod) => (
                     <RelatedProductCard
                       key={prod.id}
@@ -1041,8 +1099,28 @@ const ProductDetails = () => {
                     <FaRandom className="mr-2 text-purple-500" />{" "}
                     {t("product:similarProducts")}
                   </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => scrollContainer("left", "similar-scroll")}
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll left"
+                    >
+                      <FaChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() => scrollContainer("right", "similar-scroll")}
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll right"
+                    >
+                      <FaChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                <div
+                  id="similar-scroll"
+                  className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4"
+                  style={{ scrollBehavior: "smooth" }}
+                >
                   {similarProducts.map((prod) => (
                     <RelatedProductCard
                       key={prod.id}
@@ -1062,8 +1140,32 @@ const ProductDetails = () => {
                     <FaCopy className="mr-2 text-orange-500" />{" "}
                     {t("product:variations")}
                   </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        scrollContainer("left", "variation-scroll")
+                      }
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll left"
+                    >
+                      <FaChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        scrollContainer("right", "variation-scroll")
+                      }
+                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                      aria-label="Scroll right"
+                    >
+                      <FaChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4">
+                <div
+                  id="variation-scroll"
+                  className="flex overflow-x-auto scrollbar-hide space-x-6 pb-4"
+                  style={{ scrollBehavior: "smooth" }}
+                >
                   {variationProducts.map((prod) => (
                     <RelatedProductCard
                       key={prod.id}
