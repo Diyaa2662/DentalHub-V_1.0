@@ -1,7 +1,6 @@
 // src/i18n.js
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
 
 // ملفات الترجمة الإنجليزية
 import enCommon from "./locales/en/common.json";
@@ -62,20 +61,36 @@ const resources = {
   },
 };
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: "en",
-    defaultNS: "common",
-    interpolation: {
-      escapeValue: false,
-    },
-    detection: {
-      order: ["localStorage", "navigator"],
-      caches: ["localStorage"],
-    },
-  });
+// ✅ تحديد اللغة الافتراضية (بدون استخدام لغة المتصفح)
+const getInitialLanguage = () => {
+  // 1. نتحقق من localStorage أولاً باستخدام مفتاح i18nextLng
+  const savedLang = localStorage.getItem("i18nextLng");
+  if (savedLang === "en" || savedLang === "sv") {
+    return savedLang;
+  }
+
+  // 2. اللغة الافتراضية هي الإنجليزية
+  return "en";
+};
+
+const initialLanguage = getInitialLanguage();
+
+// ✅ حفظ اللغة فوراً في localStorage
+localStorage.setItem("i18nextLng", initialLanguage);
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLanguage,
+  fallbackLng: "en",
+  defaultNS: "common",
+  interpolation: {
+    escapeValue: false,
+  },
+});
+
+// ✅ عند تغيير اللغة، نحفظها في localStorage بنفس المفتاح
+i18n.on("languageChanged", (lng) => {
+  localStorage.setItem("i18nextLng", lng);
+});
 
 export default i18n;

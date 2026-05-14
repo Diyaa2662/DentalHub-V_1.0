@@ -280,7 +280,7 @@ const Header = () => {
                     <button
                       onClick={() => {
                         i18n.changeLanguage("en");
-                        localStorage.setItem("language", "en");
+                        localStorage.setItem("i18nextLng", "en");
                         setOpenDropdown(null);
                       }}
                       className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 ${
@@ -292,7 +292,7 @@ const Header = () => {
                     <button
                       onClick={() => {
                         i18n.changeLanguage("sv");
-                        localStorage.setItem("language", "sv");
+                        localStorage.setItem("i18nextLng", "sv");
                         setOpenDropdown(null);
                       }}
                       className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 ${
@@ -377,7 +377,7 @@ const Header = () => {
                 )}
               </div>
 
-              {/* ✅ About - مع تمييز الرابط النشط */}
+              {/* About - مع تمييز الرابط النشط */}
               <Link
                 to="/about"
                 className={`font-medium transition-colors ${
@@ -389,7 +389,7 @@ const Header = () => {
                 {t("navbar:menu_about")}
               </Link>
 
-              {/* ✅ Contact - مع تمييز الرابط النشط */}
+              {/* Contact - مع تمييز الرابط النشط */}
               <Link
                 to="/contact"
                 className={`font-medium transition-colors ${
