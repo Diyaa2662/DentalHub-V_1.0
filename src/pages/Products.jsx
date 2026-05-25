@@ -210,7 +210,7 @@ const Products = () => {
   // ========== جلب الفئات ==========
   const fetchCategoriesList = async () => {
     try {
-      const response = await api.get("/categories");
+      const response = await api.get("/categories?from=shop");
       if (response.data && response.data.data) {
         // ✅ فلترة الفئات النشطة فقط
         const activeCategories = response.data.data.filter(
