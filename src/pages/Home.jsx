@@ -1,4 +1,3 @@
-// src/pages/Home.jsx - النسخة المعدلة مع دعم external_url وصور object-contain
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -80,6 +79,13 @@ const Home = () => {
       clearInterval(autoSlideInterval.current);
       autoSlideInterval.current = null;
     }
+  };
+
+  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  const truncateText = (text, maxLength = 75) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
   };
 
   const getImageUrl = (image) => {
@@ -797,9 +803,13 @@ const Home = () => {
                       </div>
 
                       <div className="p-4">
-                        <h3 className="font-bold text-gray-800 text-base mb-2 truncate hover:text-blue-600 transition-colors">
-                          <Link to={`/product/${product.id}`}>
-                            {productName}
+                        {/* ✅ اسم المنتج مقصوص إلى 50 محرف مع إضافة title للـ hover */}
+                        <h3 className="font-bold text-gray-800 text-base mb-2 hover:text-blue-600 transition-colors">
+                          <Link
+                            to={`/product/${product.id}`}
+                            title={productName}
+                          >
+                            {truncateText(productName, 75)}
                           </Link>
                         </h3>
 

@@ -1,4 +1,4 @@
-// src/pages/SearchResults.jsx - صفحة نتائج البحث (معدلة لدعم external_url)
+// src/pages/SearchResults.jsx - صفحة نتائج البحث (معدلة لدعم external_url وقص الاسم إلى 75 محرف)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -26,10 +26,9 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("relevance"); // relevance, price_low, price_high, rating, newest
+  const [sortBy, setSortBy] = useState("relevance");
   const [addingToCart, setAddingToCart] = useState({});
 
-  // حالة للتنبيهات
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -37,7 +36,6 @@ const SearchResults = () => {
   });
 
   useEffect(() => {
-    // استخراج query parameter من الرابط
     const params = new URLSearchParams(location.search);
     const query = params.get("q") || "";
 
@@ -48,14 +46,22 @@ const SearchResults = () => {
       setError(t("search:noSearchQuery"));
       setLoading(false);
     }
+    // ✅ التمرير إلى أعلى الصفحة عند تحميل الصفحة
+    window.scrollTo({ top: 0, behavior: "smooth" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
+
+  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  const truncateText = (text, maxLength = 75) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
   const getImageUrl = (image) => {
     if (!image) return null;
 
-    // الأولوية للـ url (الملف المحلي)
     if (
       image.url &&
       typeof image.url === "string" &&
@@ -74,7 +80,6 @@ const SearchResults = () => {
       return `https://back.neotonicglobal.com/${image.url}`;
     }
 
-    // إذا لم يكن هناك url صالح، نستخدم external_url
     if (
       image.external_url &&
       typeof image.external_url === "string" &&
@@ -87,7 +92,6 @@ const SearchResults = () => {
     return null;
   };
 
-  // دالة لإظهار التنبيه
   const showNotification = (message, type = "success") => {
     setNotification({
       show: true,
@@ -127,11 +131,9 @@ const SearchResults = () => {
     }
   };
 
-  // فلترة وترتيب النتائج (بدون فلترة التوفر)
   const getFilteredAndSortedResults = () => {
     let results = [...searchResults];
 
-    // ترتيب النتائج فقط - بدون فلترة حسب التوفر
     switch (sortBy) {
       case "price_low":
         results.sort((a, b) => {
@@ -171,14 +173,12 @@ const SearchResults = () => {
 
       case "relevance":
       default:
-        // الترتيب الافتراضي كما أتى من السيرفر
         break;
     }
 
     return results;
   };
 
-  // دالة إضافة للسلة
   const handleAddToCart = async (productId, productName) => {
     const token = localStorage.getItem("customerToken");
     if (!token) {
@@ -244,7 +244,6 @@ const SearchResults = () => {
     }
   };
 
-  // دالة للحصول على اسم المنتج حسب اللغة
   const getProductName = (product) => {
     if (
       i18n.language === "sv" &&
@@ -256,12 +255,10 @@ const SearchResults = () => {
     return product.name || t("common:noName");
   };
 
-  // دالة لتحديد سعر العرض الصحيح - مع دعم المنتجات المجانية
   const getDisplayPrice = (product) => {
     const price = parseFloat(product.price) || 0;
     const discountPrice = parseFloat(product.discount_price) || 0;
 
-    // حالة المنتج المجاني
     if (discountPrice === 0 && price > 0) {
       return {
         displayPrice: 0,
@@ -291,7 +288,6 @@ const SearchResults = () => {
     };
   };
 
-  // دالة لعرض النجوم
   const renderStars = (rating) => {
     const stars = [];
     const ratingNum = parseFloat(rating) || 0;
@@ -307,7 +303,6 @@ const SearchResults = () => {
     return stars;
   };
 
-  // النتائج بعد الفلترة والترتيب
   const filteredResults = getFilteredAndSortedResults();
 
   if (loading) {
@@ -390,7 +385,6 @@ const SearchResults = () => {
               </div>
             </div>
 
-            {/* زر بحث جديد */}
             <Link
               to="/products"
               className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
@@ -476,7 +470,6 @@ const SearchResults = () => {
                   )}
                 </div>
 
-                {/* الترتيب فقط - تم إزالة قسم التوفر */}
                 <div className="mb-6">
                   <h3 className="font-bold text-gray-800 mb-3">
                     {t("search:sortBy")}
@@ -533,7 +526,6 @@ const SearchResults = () => {
                   </div>
                 </div>
 
-                {/* ملخص النتائج */}
                 <div className="pt-6 border-t border-gray-200">
                   <div className="text-sm text-gray-600">
                     <p className="font-medium mb-2">
@@ -552,7 +544,6 @@ const SearchResults = () => {
 
             {/* نتائج البحث */}
             <div className="lg:col-span-3">
-              {/* رسالة بحث */}
               <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <div className="flex items-center">
                   <FaSearch className="text-blue-600 mr-3" />
@@ -568,14 +559,13 @@ const SearchResults = () => {
                 </div>
               </div>
 
-              {/* شبكة المنتجات */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredResults.map((product) => {
                   const priceInfo = getDisplayPrice(product);
                   const productName = getProductName(product);
+                  const truncatedName = truncateText(productName, 75);
                   const isAdding = addingToCart[product.id] || false;
 
-                  // ✅ الحصول على رابط الصورة باستخدام الدالة الجديدة
                   const productImageUrl =
                     product.images && product.images[0]
                       ? getImageUrl(product.images[0])
@@ -586,14 +576,13 @@ const SearchResults = () => {
                       key={product.id}
                       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group"
                     >
-                      {/* صورة المنتج - معدلة مع دعم external_url */}
                       <div className="relative h-48 bg-gray-100 overflow-hidden">
                         {productImageUrl ? (
                           <>
                             <img
                               src={productImageUrl}
                               alt={productName}
-                              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-1"
                               onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.style.display = "none";
@@ -614,7 +603,6 @@ const SearchResults = () => {
                           </div>
                         )}
 
-                        {/* علامة الخصم أو المنتج المجاني */}
                         {priceInfo.hasDiscount && (
                           <div className="absolute top-3 left-3">
                             <div className="relative">
@@ -643,16 +631,17 @@ const SearchResults = () => {
                         )}
                       </div>
 
-                      {/* معلومات المنتج */}
                       <div className="p-4">
-                        {/* الاسم */}
-                        <h3 className="font-bold text-gray-800 text-lg mb-2 truncate hover:text-blue-600 transition-colors">
-                          <Link to={`/product/${product.id}`}>
-                            {productName}
+                        {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
+                        <h3 className="font-bold text-gray-800 text-lg mb-2 hover:text-blue-600 transition-colors">
+                          <Link
+                            to={`/product/${product.id}`}
+                            title={productName}
+                          >
+                            {truncatedName}
                           </Link>
                         </h3>
 
-                        {/* التقييم */}
                         <div className="flex items-center mb-3">
                           <div className="flex">
                             {renderStars(product.product_rate)}
@@ -662,7 +651,6 @@ const SearchResults = () => {
                           </span>
                         </div>
 
-                        {/* السعر */}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
                             {priceInfo.isFree ? (
@@ -688,7 +676,6 @@ const SearchResults = () => {
                               </>
                             )}
                           </div>
-                          {/* زر السلة */}
                           <button
                             onClick={() =>
                               handleAddToCart(product.id, productName)
@@ -713,7 +700,6 @@ const SearchResults = () => {
                           </button>
                         </div>
 
-                        {/* زر التفاصيل */}
                         <Link
                           to={`/product/${product.id}`}
                           className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 shadow-md hover:shadow-lg"
@@ -730,7 +716,6 @@ const SearchResults = () => {
         )}
       </div>
 
-      {/* CSS للأنيميشن */}
       <style>{`
         @keyframes fadeInDown {
           from {

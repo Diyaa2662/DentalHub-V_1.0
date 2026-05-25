@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج
+// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج وقص الاسم إلى 75 محرف
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -53,6 +53,13 @@ const Products = () => {
   // ✅ الفئات المعروضة حالياً
   const visibleCategories = categories.slice(0, visibleCategoriesCount);
   const hasMoreCategories = categories.length > visibleCategoriesCount;
+
+  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  const truncateText = (text, maxLength = 75) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   // ✅ دالة لتحميل المزيد من الفئات
   const loadMoreCategories = () => {
@@ -165,6 +172,7 @@ const Products = () => {
       ) {
         setProducts(response.data.date);
         setHasMorePages(response.data.date.length === 28);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         if (currentPage === 1) {
           setProducts([]);
@@ -740,6 +748,7 @@ const Products = () => {
                     const productName = getProductName(product);
                     const isAdding = addingToCart[product.id] || false;
                     const productImageUrl = getProductImageUrl(product);
+                    const truncatedName = truncateText(productName, 75);
 
                     return (
                       <div
@@ -753,7 +762,7 @@ const Products = () => {
                               <img
                                 src={productImageUrl}
                                 alt={productName}
-                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-1"
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.style.display = "none";
@@ -806,9 +815,13 @@ const Products = () => {
 
                         {/* معلومات المنتج */}
                         <div className="p-4">
-                          <h3 className="font-bold text-gray-800 text-lg mb-2 truncate hover:text-blue-600 transition-colors">
-                            <Link to={`/product/${product.id}`}>
-                              {productName}
+                          {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
+                          <h3 className="font-bold text-gray-800 text-lg mb-2 hover:text-blue-600 transition-colors">
+                            <Link
+                              to={`/product/${product.id}`}
+                              title={productName}
+                            >
+                              {truncatedName}
                             </Link>
                           </h3>
 
@@ -877,7 +890,7 @@ const Products = () => {
 
                           <Link
                             to={`/product/${product.id}`}
-                            className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 shadow-md hover:shadow-lg"
+                            className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 text-sm shadow-md hover:shadow-lg"
                           >
                             {t("common:viewDetails")}
                           </Link>

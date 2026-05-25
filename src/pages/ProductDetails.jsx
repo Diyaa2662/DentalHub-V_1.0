@@ -1,4 +1,4 @@
-// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة وقص الاسم إلى 75 محرف
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -27,6 +27,13 @@ import {
 const RelatedProductCard = ({ product, onAddToCart }) => {
   const { t, i18n } = useTranslation(["common", "product"]);
   const [isAdding, setIsAdding] = useState(false);
+
+  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  const truncateText = (text, maxLength = 75) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   // ✅ الحصول على اسم المنتج حسب اللغة (السويدية أو الإنجليزية)
   const getProductName = (prod) => {
@@ -103,6 +110,7 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
 
   const priceInfo = getDisplayPrice(product);
   const productName = getProductName(product);
+  const truncatedName = truncateText(productName, 75);
   const productImageUrl = product.first_image
     ? getImageUrl(product.first_image)
     : null;
@@ -114,7 +122,7 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
           <img
             src={productImageUrl}
             alt={productName}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-1"
             onError={(e) => {
               e.target.onerror = null;
               e.target.style.display = "none";
@@ -147,8 +155,11 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
         )}
       </div>
       <div className="p-3">
-        <h3 className="font-bold text-gray-800 text-sm mb-1 truncate hover:text-blue-600 transition-colors">
-          <Link to={`/product/${product.id}`}>{productName}</Link>
+        {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
+        <h3 className="font-bold text-gray-800 text-sm mb-1 hover:text-blue-600 transition-colors">
+          <Link to={`/product/${product.id}`} title={productName}>
+            {truncatedName}
+          </Link>
         </h3>
         <div className="flex items-center mb-2">
           <div className="flex">{renderStars(product.product_rate)}</div>
@@ -226,6 +237,8 @@ const ProductDetails = () => {
 
   useEffect(() => {
     fetchProductDetails();
+    // ✅ التمرير إلى أعلى الصفحة عند تحميل الصفحة
+    window.scrollTo({ top: 0, behavior: "smooth" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, i18n.language]);
 
