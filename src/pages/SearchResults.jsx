@@ -593,7 +593,7 @@ const SearchResults = () => {
                             <img
                               src={productImageUrl}
                               alt={productName}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.style.display = "none";

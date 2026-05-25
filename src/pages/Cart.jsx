@@ -640,7 +640,7 @@ const Cart = () => {
                                 <img
                                   src={productImageUrl}
                                   alt={productName}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain"
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = "none";
