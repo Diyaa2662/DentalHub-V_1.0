@@ -1,8 +1,9 @@
-// src/pages/Orders.jsx - صفحة طلبات المستخدم المعدلة
+// src/pages/Orders.jsx - صفحة طلبات المستخدم المعدلة (مع دعم عملة kr)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaShoppingBag,
   FaArrowLeft,
@@ -21,10 +22,18 @@ const Orders = () => {
   const { t, i18n } = useTranslation(["common", "orders"]);
   const navigate = useNavigate();
 
+  // ✅ دالة لتنسيق السعر مع العملة
+  const formatPrice = (price) => {
+    if (price === undefined || price === null) return `0 ${CURRENCY_SYMBOL}`;
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice)) return `0 ${CURRENCY_SYMBOL}`;
+    return `${numPrice.toFixed(2)} ${CURRENCY_SYMBOL}`;
+  };
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all"); // all, pending, confirmed, canceled
+  const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
     fetchOrders();
@@ -62,7 +71,7 @@ const Orders = () => {
         localStorage.removeItem("customerData");
         navigate("/login");
       } else if (err.response?.status === 404) {
-        setOrders([]); // لا توجد طلبات
+        setOrders([]);
       } else {
         setError(err.response?.data?.message || t("common:error"));
       }
@@ -71,18 +80,15 @@ const Orders = () => {
     }
   };
 
-  // فلترة الطلبات حسب الحالة
   const filteredOrders = orders.filter((order) => {
     if (filterStatus === "all") return true;
     return order.status === filterStatus;
   });
 
-  // ترتيب الطلبات بالأحدث أولاً
   const sortedOrders = [...filteredOrders].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at),
   );
 
-  // دالة للحصول على حالة الطلب مع لون مناسب
   const getStatusInfo = (status) => {
     const statusLower = status?.toLowerCase() || "";
 
@@ -122,7 +128,6 @@ const Orders = () => {
     }
   };
 
-  // دالة لعرض التاريخ بشكل جيد
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
 
@@ -367,8 +372,7 @@ const Orders = () => {
 
                           <div className="text-right">
                             <div className="text-2xl font-bold text-blue-600">
-                              {order.currency}{" "}
-                              {parseFloat(order.total_amount).toFixed(2)}
+                              {formatPrice(order.total_amount)}
                             </div>
                             <div className="text-sm text-gray-500">
                               {order.number_of_items} {t("orders:items")}
@@ -427,18 +431,14 @@ const Orders = () => {
                                   {t("orders:subtotal")}:
                                 </span>
                                 <span className="font-medium">
-                                  {order.currency}{" "}
-                                  {parseFloat(order.subtotal).toFixed(2)}
+                                  {formatPrice(order.subtotal)}
                                 </span>
                               </div>
                               {parseFloat(order.discount_amount) > 0 && (
                                 <div className="flex justify-between text-green-600">
                                   <span>{t("orders:discount")}:</span>
                                   <span className="font-medium">
-                                    -{order.currency}{" "}
-                                    {parseFloat(order.discount_amount).toFixed(
-                                      2,
-                                    )}
+                                    -{formatPrice(order.discount_amount)}
                                   </span>
                                 </div>
                               )}
@@ -447,8 +447,7 @@ const Orders = () => {
                                   {t("orders:tax")}:
                                 </span>
                                 <span className="font-medium">
-                                  {order.currency}{" "}
-                                  {parseFloat(order.tax_amount).toFixed(2)}
+                                  {formatPrice(order.tax_amount)}
                                 </span>
                               </div>
                               <div className="flex justify-between border-t border-gray-200 pt-2">
@@ -456,8 +455,7 @@ const Orders = () => {
                                   {t("orders:total")}:
                                 </span>
                                 <span className="font-bold text-blue-600">
-                                  {order.currency}{" "}
-                                  {parseFloat(order.total_amount).toFixed(2)}
+                                  {formatPrice(order.total_amount)}
                                 </span>
                               </div>
                             </div>
@@ -533,13 +531,12 @@ const Orders = () => {
 
                   <div className="text-center bg-purple-50 p-4 rounded-xl">
                     <div className="text-3xl font-bold text-purple-600 mb-2">
-                      {orders.currency}{" "}
-                      {orders
-                        .reduce(
+                      {formatPrice(
+                        orders.reduce(
                           (sum, order) => sum + parseFloat(order.total_amount),
                           0,
-                        )
-                        .toFixed(2)}
+                        ),
+                      )}
                     </div>
                     <div className="text-gray-700 font-medium">
                       {t("orders:totalSpent")}

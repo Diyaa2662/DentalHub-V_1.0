@@ -1,8 +1,9 @@
-// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدلة لدعم external_url)
+// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدلة لدعم external_url وعملة kr)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaShoppingCart,
   FaTrash,
@@ -35,6 +36,12 @@ const Cart = () => {
   const [tempQuantities, setTempQuantities] = useState({});
   const [checkingOut, setCheckingOut] = useState(false);
 
+  // ✅ دالة لتنسيق السعر مع العملة
+  const formatPrice = (price) => {
+    if (price === undefined || price === null) return `0 ${CURRENCY_SYMBOL}`;
+    return `${price.toFixed(2)} ${CURRENCY_SYMBOL}`;
+  };
+
   useEffect(() => {
     fetchCartData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,7 +51,6 @@ const Cart = () => {
   const getImageUrl = (image) => {
     if (!image) return null;
 
-    // الأولوية للـ url (الملف المحلي)
     if (
       image.url &&
       typeof image.url === "string" &&
@@ -63,7 +69,6 @@ const Cart = () => {
       return `https://back.neotonicglobal.com/${image.url}`;
     }
 
-    // إذا لم يكن هناك url صالح، نستخدم external_url
     if (
       image.external_url &&
       typeof image.external_url === "string" &&
@@ -107,7 +112,7 @@ const Cart = () => {
         localStorage.removeItem("customerData");
         navigate("/login");
       } else if (err.response?.status === 404) {
-        setCartData(null); // السلة فارغة
+        setCartData(null);
       } else {
         setError(err.response?.data?.message || t("common:error"));
       }
@@ -116,7 +121,6 @@ const Cart = () => {
     }
   };
 
-  // دالة لإظهار التنبيه
   const showNotification = (message, type = "success") => {
     setNotification({
       show: true,
@@ -133,7 +137,6 @@ const Cart = () => {
     }, 3000);
   };
 
-  // دالة تحديث الكمية المؤقتة
   const handleQuantityChange = (productId, change) => {
     const currentQuantity =
       tempQuantities[productId] ||
@@ -150,7 +153,6 @@ const Cart = () => {
     }));
   };
 
-  // دالة حفظ الكمية الجديدة
   const saveQuantity = async (productId) => {
     const newQuantity = tempQuantities[productId];
     if (!newQuantity || newQuantity < 1) return;
@@ -262,7 +264,6 @@ const Cart = () => {
     }
   };
 
-  // دالة حذف منتج من السلة
   const removeItem = async (productId) => {
     const token = localStorage.getItem("customerToken");
     if (!token) {
@@ -323,7 +324,6 @@ const Cart = () => {
     }
   };
 
-  // دالة الشيك اوت
   const handleCheckout = async () => {
     const token = localStorage.getItem("customerToken");
     if (!token) {
@@ -337,10 +337,13 @@ const Cart = () => {
       return;
     }
 
+    const totalAmount = parseFloat(cartData?.order?.total_amount || 0).toFixed(
+      2,
+    );
     const confirmMessage =
       i18n.language === "sv"
-        ? `Är du säker på att du vill slutföra beställningen ${cartData.order.order_number}?\n\nTotalt: ${cartData.order.currency} ${parseFloat(cartData.order.total_amount).toFixed(2)}\n\nDenna åtgärd kan inte ångras.`
-        : `Are you sure you want to complete order ${cartData.order.order_number}?\n\nTotal: ${cartData.order.currency} ${parseFloat(cartData.order.total_amount).toFixed(2)}\n\nThis action cannot be undone.`;
+        ? `Är du säker på att du vill slutföra beställningen ${cartData.order.order_number}?\n\nTotalt: ${formatPrice(totalAmount)}\n\nDenna åtgärd kan inte ångras.`
+        : `Are you sure you want to complete order ${cartData.order.order_number}?\n\nTotal: ${formatPrice(totalAmount)}\n\nThis action cannot be undone.`;
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -417,7 +420,6 @@ const Cart = () => {
     }
   };
 
-  // دالة للحصول على اسم المنتج حسب اللغة
   const getProductName = (product) => {
     if (
       i18n.language === "sv" &&
@@ -442,7 +444,6 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* تنبيهات */}
       {notification.show && (
         <div
           className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
@@ -472,7 +473,6 @@ const Cart = () => {
         </div>
       )}
 
-      {/* الهيدر */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -518,7 +518,6 @@ const Cart = () => {
         </div>
       </div>
 
-      {/* المحتوى الرئيسي */}
       <div className="container mx-auto px-4 py-8">
         {error && !cartData ? (
           <div className="text-center py-16">
@@ -567,10 +566,8 @@ const Cart = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* المنتجات في السلة */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                {/* هيدر السلة */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -598,7 +595,6 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* قائمة المنتجات */}
                 <div className="divide-y divide-gray-200">
                   {cartData?.related_products?.map((product) => {
                     const productName = getProductName(product);
@@ -621,7 +617,6 @@ const Cart = () => {
                     );
                     const hasDiscount = discountAmount > 0;
 
-                    // ✅ الحصول على رابط الصورة باستخدام الدالة الجديدة
                     const productImageUrl =
                       product.images && product.images[0]
                         ? getImageUrl(product.images[0])
@@ -633,7 +628,6 @@ const Cart = () => {
                         className="p-6 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex flex-col md:flex-row gap-6">
-                          {/* صورة المنتج - معدلة مع دعم external_url */}
                           <div className="md:w-32">
                             <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                               {productImageUrl ? (
@@ -662,7 +656,6 @@ const Cart = () => {
                             </div>
                           </div>
 
-                          {/* معلومات المنتج */}
                           <div className="flex-1">
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                               <div className="flex-1">
@@ -674,20 +667,18 @@ const Cart = () => {
                                   </h3>
                                 </div>
 
-                                {/* السعر */}
                                 <div className="flex items-center flex-wrap gap-4 mb-4">
                                   <div className="text-lg font-bold text-gray-900">
-                                    ${unitPrice.toFixed(2)}
+                                    {formatPrice(unitPrice)}
                                   </div>
                                   {hasDiscount && (
                                     <div className="text-sm text-green-600">
-                                      {t("cart:discountApplied")}: -$
-                                      {discountAmount.toFixed(2)}
+                                      {t("cart:discountApplied")}: -
+                                      {formatPrice(discountAmount)}
                                     </div>
                                   )}
                                 </div>
 
-                                {/* الكمية */}
                                 <div className="flex items-center gap-4">
                                   <div className="flex items-center">
                                     <span className="text-gray-700 mr-3">
@@ -732,7 +723,6 @@ const Cart = () => {
                                       </button>
                                     </div>
 
-                                    {/* زر حفظ إذا كانت هناك تغييرات غير محفوظة */}
                                     {hasUnsavedChanges && !isUpdating && (
                                       <button
                                         onClick={() => saveQuantity(product.id)}
@@ -743,14 +733,12 @@ const Cart = () => {
                                     )}
                                   </div>
 
-                                  {/* المجموع الفرعي */}
                                   <div className="text-lg font-bold text-blue-600">
-                                    ${subtotal.toFixed(2)}
+                                    {formatPrice(subtotal)}
                                   </div>
                                 </div>
                               </div>
 
-                              {/* زر الحذف */}
                               <div>
                                 <button
                                   onClick={() => removeItem(product.id)}
@@ -770,7 +758,6 @@ const Cart = () => {
                 </div>
               </div>
 
-              {/* رسوم التوصيل والضمان */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center mb-3">
@@ -822,7 +809,6 @@ const Cart = () => {
               </div>
             </div>
 
-            {/* ملخص الطلب */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 sticky top-8">
                 <div className="p-6 border-b border-gray-200">
@@ -836,7 +822,9 @@ const Cart = () => {
                         {t("cart:subtotal")}
                       </span>
                       <span className="font-medium">
-                        ${parseFloat(cartData?.order?.subtotal || 0).toFixed(2)}
+                        {formatPrice(
+                          parseFloat(cartData?.order?.subtotal || 0),
+                        )}
                       </span>
                     </div>
 
@@ -844,10 +832,10 @@ const Cart = () => {
                       <div className="flex justify-between text-green-600">
                         <span>{t("cart:discount")}</span>
                         <span className="font-medium">
-                          -$
-                          {parseFloat(
-                            cartData?.order?.discount_amount || 0,
-                          ).toFixed(2)}
+                          -
+                          {formatPrice(
+                            parseFloat(cartData?.order?.discount_amount || 0),
+                          )}
                         </span>
                       </div>
                     )}
@@ -855,9 +843,8 @@ const Cart = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t("cart:tax")}</span>
                       <span className="font-medium">
-                        $
-                        {parseFloat(cartData?.order?.tax_amount || 0).toFixed(
-                          2,
+                        {formatPrice(
+                          parseFloat(cartData?.order?.tax_amount || 0),
                         )}
                       </span>
                     </div>
@@ -873,7 +860,6 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* الإجمالي */}
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-lg font-bold text-gray-900">
@@ -881,13 +867,9 @@ const Cart = () => {
                     </span>
                     <div>
                       <div className="text-2xl font-bold text-blue-600">
-                        $
-                        {parseFloat(cartData?.order?.total_amount || 0).toFixed(
-                          2,
+                        {formatPrice(
+                          parseFloat(cartData?.order?.total_amount || 0),
                         )}
-                      </div>
-                      <div className="text-sm text-gray-500 text-right">
-                        {cartData?.order?.currency || "USD"}
                       </div>
                     </div>
                   </div>
@@ -896,7 +878,6 @@ const Cart = () => {
                   </p>
                 </div>
 
-                {/* أزرار الدفع */}
                 <div className="p-6">
                   <button
                     onClick={handleCheckout}
@@ -935,7 +916,6 @@ const Cart = () => {
                   </Link>
                 </div>
 
-                {/* معلومات الطلب */}
                 <div className="p-6 bg-gray-50 rounded-b-2xl">
                   <h4 className="font-bold text-gray-900 mb-3">
                     {t("cart:orderDetails")}
@@ -969,7 +949,6 @@ const Cart = () => {
         )}
       </div>
 
-      {/* CSS للأنيميشن */}
       <style>{`
         @keyframes fadeInDown {
           from {

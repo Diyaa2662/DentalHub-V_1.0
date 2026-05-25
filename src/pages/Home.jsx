@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaStar,
   FaChevronLeft,
@@ -31,6 +32,13 @@ const Home = () => {
 
   const categoryRefs = useRef({});
   const autoSlideInterval = useRef(null);
+
+  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  const truncateText = (text, maxLength = 75) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   useEffect(() => {
     fetchHomeData();
@@ -79,13 +87,6 @@ const Home = () => {
       clearInterval(autoSlideInterval.current);
       autoSlideInterval.current = null;
     }
-  };
-
-  // ✅ دالة لقص النص إلى عدد محدد من المحارف
-  const truncateText = (text, maxLength = 75) => {
-    if (!text) return "";
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "...";
   };
 
   const getImageUrl = (image) => {
@@ -514,21 +515,28 @@ const Home = () => {
                                     {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                   </span>
                                   <span className="text-base line-through text-gray-300 mt-1">
-                                    $
-                                    {priceInfo.originalPrice?.toFixed(2) ||
-                                      "0.00"}
+                                    {priceInfo.originalPrice?.toFixed(2)}{" "}
+                                    <span className="text-xs">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center">
                                   <span className="text-2xl font-bold">
-                                    ${priceInfo.displayPrice.toFixed(2)}
+                                    {priceInfo.displayPrice.toFixed(2)}{" "}
+                                    <span className="text-sm font-normal">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                   {priceInfo.hasDiscount &&
                                     priceInfo.displayPrice > 0 && (
                                       <div className="flex items-center mt-1">
                                         <span className="text-base line-through text-gray-300 mr-2">
-                                          ${priceInfo.originalPrice.toFixed(2)}
+                                          {priceInfo.originalPrice.toFixed(2)}{" "}
+                                          <span className="text-xs">
+                                            {CURRENCY_SYMBOL}
+                                          </span>
                                         </span>
                                         <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                                           -{priceInfo.discountPercentage}%
@@ -573,21 +581,28 @@ const Home = () => {
                                     {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                   </span>
                                   <span className="text-2xl line-through text-gray-300">
-                                    $
-                                    {priceInfo.originalPrice?.toFixed(2) ||
-                                      "0.00"}
+                                    {priceInfo.originalPrice?.toFixed(2)}{" "}
+                                    <span className="text-sm">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                 </div>
                               ) : (
                                 <>
                                   <span className="text-4xl font-bold mr-4">
-                                    ${priceInfo.displayPrice.toFixed(2)}
+                                    {priceInfo.displayPrice.toFixed(2)}{" "}
+                                    <span className="text-xl font-normal">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                   {priceInfo.hasDiscount &&
                                     priceInfo.displayPrice > 0 && (
                                       <>
                                         <span className="text-xl line-through text-gray-300 mr-4">
-                                          ${priceInfo.originalPrice.toFixed(2)}
+                                          {priceInfo.originalPrice.toFixed(2)}{" "}
+                                          <span className="text-sm">
+                                            {CURRENCY_SYMBOL}
+                                          </span>
                                         </span>
                                         <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                                           -{priceInfo.discountPercentage}%
@@ -803,7 +818,7 @@ const Home = () => {
                       </div>
 
                       <div className="p-4">
-                        {/* ✅ اسم المنتج مقصوص إلى 50 محرف مع إضافة title للـ hover */}
+                        {/* ✅ اسم المنتج مقصوص مع title للـ hover */}
                         <h3 className="font-bold text-gray-800 text-base mb-2 hover:text-blue-600 transition-colors">
                           <Link
                             to={`/product/${product.id}`}
@@ -830,9 +845,10 @@ const Home = () => {
                                   {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                 </span>
                                 <span className="text-gray-400 line-through text-sm">
-                                  $
-                                  {priceInfo.originalPrice?.toFixed(2) ||
-                                    "0.00"}
+                                  {priceInfo.originalPrice?.toFixed(2)}{" "}
+                                  <span className="text-xs">
+                                    {CURRENCY_SYMBOL}
+                                  </span>
                                 </span>
                                 <span className="text-xs text-green-500 font-medium mt-1">
                                   {i18n.language === "sv"
@@ -843,12 +859,18 @@ const Home = () => {
                             ) : (
                               <>
                                 <span className="text-xl font-bold text-blue-600">
-                                  ${priceInfo.displayPrice.toFixed(2)}
+                                  {priceInfo.displayPrice.toFixed(2)}{" "}
+                                  <span className="text-sm font-normal">
+                                    {CURRENCY_SYMBOL}
+                                  </span>
                                 </span>
                                 {priceInfo.hasDiscount &&
                                   priceInfo.displayPrice > 0 && (
                                     <span className="text-gray-400 line-through text-sm ml-2">
-                                      ${priceInfo.originalPrice.toFixed(2)}
+                                      {priceInfo.originalPrice.toFixed(2)}{" "}
+                                      <span className="text-xs">
+                                        {CURRENCY_SYMBOL}
+                                      </span>
                                     </span>
                                   )}
                               </>

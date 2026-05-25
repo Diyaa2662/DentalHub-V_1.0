@@ -1,8 +1,9 @@
-// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج وقص الاسم إلى 75 محرف
+// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج وقص الاسم إلى 75 محرف وعملة kr
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaStar,
   FaShoppingCart,
@@ -842,7 +843,10 @@ const Products = () => {
                                     {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                   </span>
                                   <span className="text-gray-400 line-through text-sm">
-                                    ${priceInfo.originalPrice.toFixed(2)}
+                                    {priceInfo.originalPrice.toFixed(2)}{" "}
+                                    <span className="text-xs">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                   <span className="text-xs text-green-500 font-medium mt-1">
                                     {i18n.language === "sv"
@@ -853,12 +857,18 @@ const Products = () => {
                               ) : (
                                 <>
                                   <span className="text-xl font-bold text-blue-600">
-                                    ${priceInfo.displayPrice.toFixed(2)}
+                                    {priceInfo.displayPrice.toFixed(2)}{" "}
+                                    <span className="text-sm font-normal">
+                                      {CURRENCY_SYMBOL}
+                                    </span>
                                   </span>
                                   {priceInfo.hasDiscount &&
                                     priceInfo.displayPrice > 0 && (
                                       <span className="text-gray-400 line-through text-sm ml-2">
-                                        ${priceInfo.originalPrice.toFixed(2)}
+                                        {priceInfo.originalPrice.toFixed(2)}{" "}
+                                        <span className="text-xs">
+                                          {CURRENCY_SYMBOL}
+                                        </span>
                                       </span>
                                     )}
                                 </>

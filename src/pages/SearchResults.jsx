@@ -1,8 +1,9 @@
-// src/pages/SearchResults.jsx - صفحة نتائج البحث (معدلة لدعم external_url وقص الاسم إلى 75 محرف)
+// src/pages/SearchResults.jsx - صفحة نتائج البحث (معدلة لدعم external_url وقص الاسم إلى 75 محرف وعملة kr)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaSearch,
   FaStar,
@@ -659,18 +660,27 @@ const SearchResults = () => {
                                   {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                 </span>
                                 <span className="text-gray-400 line-through text-sm">
-                                  ${priceInfo.originalPrice.toFixed(2)}
+                                  {priceInfo.originalPrice.toFixed(2)}{" "}
+                                  <span className="text-xs">
+                                    {CURRENCY_SYMBOL}
+                                  </span>
                                 </span>
                               </div>
                             ) : (
                               <>
                                 <span className="text-xl font-bold text-blue-600">
-                                  ${priceInfo.displayPrice.toFixed(2)}
+                                  {priceInfo.displayPrice.toFixed(2)}{" "}
+                                  <span className="text-sm font-normal">
+                                    {CURRENCY_SYMBOL}
+                                  </span>
                                 </span>
                                 {priceInfo.hasDiscount &&
                                   priceInfo.displayPrice > 0 && (
                                     <span className="text-gray-400 line-through text-sm ml-2">
-                                      ${priceInfo.originalPrice.toFixed(2)}
+                                      {priceInfo.originalPrice.toFixed(2)}{" "}
+                                      <span className="text-xs">
+                                        {CURRENCY_SYMBOL}
+                                      </span>
                                     </span>
                                   )}
                               </>

@@ -1,8 +1,9 @@
-// src/pages/Profile.jsx - النسخة المعدلة
+// src/pages/Profile.jsx - النسخة المعدلة (مع دعم عملة kr)
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaUser,
   FaEnvelope,
@@ -25,6 +26,14 @@ import {
 const Profile = () => {
   const { t } = useTranslation(["common", "profile"]);
   const navigate = useNavigate();
+
+  // ✅ دالة لتنسيق السعر مع العملة
+  const formatPrice = (price) => {
+    if (price === undefined || price === null) return `0 ${CURRENCY_SYMBOL}`;
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice)) return `0 ${CURRENCY_SYMBOL}`;
+    return `${numPrice.toFixed(2)} ${CURRENCY_SYMBOL}`;
+  };
 
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -78,7 +87,6 @@ const Profile = () => {
       console.error("❌ Error fetching profile:", err);
 
       if (err.response?.status === 401) {
-        // التوكن غير صالح
         localStorage.removeItem("customerToken");
         localStorage.removeItem("customerData");
         navigate("/login");
@@ -111,7 +119,6 @@ const Profile = () => {
     setSuccess("");
 
     try {
-      // إرسال البيانات إلى /updateuser
       const response = await api.post("/updateuser", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -123,18 +130,15 @@ const Profile = () => {
         const updatedData = response.data.data;
         setProfileData(updatedData);
 
-        // تحديث localStorage - استخدام البيانات المحدثة من الاستجابة إذا وجدت
         const currentCustomerData = JSON.parse(
           localStorage.getItem("customerData") || "{}",
         );
 
-        // هنا المشكلة: يجب أن نستخدم formData أولاً، ثم ندمج مع أي بيانات إضافية من الاستجابة
         const updatedCustomerData = {
           ...currentCustomerData,
           name: updatedData.name || formData.name,
           phone: updatedData.phone || formData.phone,
           address: updatedData.address || formData.address,
-          // تحديث أي بيانات أخرى قد تكون في الاستجابة
           ...updatedData,
         };
 
@@ -143,7 +147,6 @@ const Profile = () => {
           JSON.stringify(updatedCustomerData),
         );
 
-        // تحديث formData بالبيانات المحدثة
         setFormData({
           name: updatedData.name || formData.name,
           phone: updatedData.phone || formData.phone,
@@ -153,13 +156,10 @@ const Profile = () => {
         setSuccess(t("profile:updateSuccess"));
         setEditMode(false);
 
-        // إخفاء رسالة النجاح بعد 3 ثواني
         setTimeout(() => {
           setSuccess("");
         }, 3000);
       } else if (response.data && response.data.message) {
-        // إذا كانت الاستجابة تحتوي فقط على رسالة نجاح
-        // تحديث localStorage مباشرة من formData
         const currentCustomerData = JSON.parse(
           localStorage.getItem("customerData") || "{}",
         );
@@ -179,7 +179,6 @@ const Profile = () => {
         setSuccess(response.data.message || t("profile:updateSuccess"));
         setEditMode(false);
 
-        // إعادة جلب البيانات لتحديث العرض
         fetchProfile();
 
         setTimeout(() => {
@@ -204,7 +203,6 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    // مسح بيانات الزبون فقط
     localStorage.removeItem("customerToken");
     localStorage.removeItem("customerData");
     localStorage.removeItem("customerEmail");
@@ -603,17 +601,9 @@ const Profile = () => {
                             {t("profile:totalOrders")}
                           </div>
                         </div>
-                        {/* <div className="text-center bg-green-50 p-6 rounded-xl">
-                          <div className="text-3xl font-bold text-green-600 mb-2">
-                            {profileData?.rate || "0.0"}
-                          </div>
-                          <div className="text-gray-700 font-medium">
-                            {t("profile:customerRating")}
-                          </div>
-                        </div> */}
                         <div className="text-center bg-purple-50 p-6 rounded-xl">
                           <div className="text-3xl font-bold text-purple-600 mb-2">
-                            ${profileData?.total_spent || "0.00"}
+                            {formatPrice(profileData?.total_spent || "0.00")}
                           </div>
                           <div className="text-gray-700 font-medium">
                             {t("profile:totalSpent")}

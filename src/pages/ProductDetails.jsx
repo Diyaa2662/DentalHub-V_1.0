@@ -1,8 +1,9 @@
-// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة وقص الاسم إلى 75 محرف
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة وقص الاسم إلى 75 محرف وعملة kr
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../services/api";
+import { CURRENCY_SYMBOL } from "../constants/currency";
 import {
   FaStar,
   FaShoppingCart,
@@ -176,11 +177,13 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
             ) : (
               <>
                 <span className="text-lg font-bold text-blue-600">
-                  ${priceInfo.displayPrice.toFixed(2)}
+                  {priceInfo.displayPrice.toFixed(2)}{" "}
+                  <span className="text-xs font-normal">{CURRENCY_SYMBOL}</span>
                 </span>
                 {priceInfo.hasDiscount && priceInfo.displayPrice > 0 && (
                   <span className="text-gray-400 line-through text-xs ml-1">
-                    ${priceInfo.originalPrice.toFixed(2)}
+                    {priceInfo.originalPrice.toFixed(2)}{" "}
+                    <span className="text-xs">{CURRENCY_SYMBOL}</span>
                   </span>
                 )}
               </>
@@ -728,7 +731,8 @@ const ProductDetails = () => {
                         {i18n.language === "sv" ? "GRATIS" : "FREE"}
                       </span>
                       <span className="text-2xl line-through text-gray-400">
-                        ${price.toFixed(2)}
+                        {price.toFixed(2)}{" "}
+                        <span className="text-sm">{CURRENCY_SYMBOL}</span>
                       </span>
                       <span className="text-green-500 text-sm font-medium mt-1">
                         {i18n.language === "sv"
@@ -737,22 +741,28 @@ const ProductDetails = () => {
                       </span>
                     </div>
                     <span className="ml-4 mt-2 sm:mt-0 bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full">
-                      {t("product:save")} ${price.toFixed(2)}
+                      {t("product:save")} {price.toFixed(2)}{" "}
+                      <span className="text-sm">{CURRENCY_SYMBOL}</span>
                     </span>
                   </>
                 ) : (
                   <>
                     <span className="text-4xl font-bold text-blue-600">
-                      ${displayPrice.toFixed(2)}
+                      {displayPrice.toFixed(2)}{" "}
+                      <span className="text-xl font-normal">
+                        {CURRENCY_SYMBOL}
+                      </span>
                     </span>
                     {hasDiscount && (
                       <>
                         <span className="text-2xl line-through text-gray-400 ml-4">
-                          ${price.toFixed(2)}
+                          {price.toFixed(2)}{" "}
+                          <span className="text-sm">{CURRENCY_SYMBOL}</span>
                         </span>
                         <span className="ml-4 bg-red-100 text-red-600 font-bold px-3 py-1 rounded-full">
-                          {t("product:save")} $
-                          {(price - discountPrice).toFixed(2)}
+                          {t("product:save")}{" "}
+                          {(price - discountPrice).toFixed(2)}{" "}
+                          <span className="text-sm">{CURRENCY_SYMBOL}</span>
                         </span>
                       </>
                     )}
