@@ -252,12 +252,8 @@ const Products = () => {
   }, [currentPage]);
 
   // ========== مراقبة تغيير الفئات (للفلتر اليدوي من شريط الفلتر) ==========
+  // ✅ تم إزالة الشرط الذي كان يمنع الفلتر عند وجود category في الرابط
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const hasCategoryParam = params.has("category");
-
-    if (hasCategoryParam) return;
-
     if (selectedCategories.length > 0) {
       filterProducts();
     } else if (selectedCategories.length === 0 && !loading) {
