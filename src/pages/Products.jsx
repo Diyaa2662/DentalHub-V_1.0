@@ -813,7 +813,7 @@ const Products = () => {
                         {/* معلومات المنتج */}
                         <div className="p-4">
                           {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
-                          <h3 className="font-bold text-gray-800 text-lg mb-2 hover:text-blue-600 transition-colors">
+                          <h3 className="font-bold text-gray-800 text-lg mb-1 hover:text-blue-600 transition-colors">
                             <Link
                               to={`/product/${product.id}`}
                               title={productName}
@@ -821,6 +821,16 @@ const Products = () => {
                               {truncatedName}
                             </Link>
                           </h3>
+
+                          {/* ✅ Article Number */}
+                          {product.artical && (
+                            <p className="text-xs text-gray-500 mb-2">
+                              {t("common:article")}:{" "}
+                              <span className="font-medium">
+                                {product.artical}
+                              </span>
+                            </p>
+                          )}
 
                           <div className="flex items-center mb-3">
                             <div className="flex">

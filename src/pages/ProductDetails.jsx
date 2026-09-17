@@ -702,9 +702,20 @@ const ProductDetails = () => {
           {/* قسم المعلومات الأساسية */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">
                 {getProductName()}
               </h1>
+
+              {/* ✅ Article Number */}
+              {product.artical && (
+                <p className="text-sm text-gray-500 mb-2">
+                  {t("common:article")}:{" "}
+                  <span className="font-medium text-gray-700">
+                    {product.artical}
+                  </span>
+                </p>
+              )}
+
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center">
                   {renderStars(product.product_rate)}

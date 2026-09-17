@@ -819,7 +819,7 @@ const Home = () => {
 
                       <div className="p-4">
                         {/* ✅ اسم المنتج مقصوص مع title للـ hover */}
-                        <h3 className="font-bold text-gray-800 text-base mb-2 hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-gray-800 text-base mb-1 hover:text-blue-600 transition-colors">
                           <Link
                             to={`/product/${product.id}`}
                             title={productName}
@@ -827,6 +827,16 @@ const Home = () => {
                             {truncateText(productName, 75)}
                           </Link>
                         </h3>
+
+                        {/* ✅ Article Number */}
+                        {product.artical && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            {t("common:article")}:{" "}
+                            <span className="font-medium">
+                              {product.artical}
+                            </span>
+                          </p>
+                        )}
 
                         <div className="flex items-center mb-3">
                           <div className="flex">
