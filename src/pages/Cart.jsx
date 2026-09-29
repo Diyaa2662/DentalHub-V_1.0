@@ -61,12 +61,12 @@ const Cart = () => {
         return image.url;
       }
       if (image.url.startsWith("/")) {
-        return `https://back.neotonicglobal.com${image.url}`;
+        return `https://back.dsndental.com${image.url}`;
       }
       if (image.url.startsWith("storage/")) {
-        return `https://back.neotonicglobal.com/${image.url}`;
+        return `https://back.dsndental.com/${image.url}`;
       }
-      return `https://back.neotonicglobal.com/${image.url}`;
+      return `https://back.dsndental.com/${image.url}`;
     }
 
     if (
