@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL
-const BASE_URL = "https://back.neotonicglobal.com/api";
+const BASE_URL = "https://back.dsndental.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

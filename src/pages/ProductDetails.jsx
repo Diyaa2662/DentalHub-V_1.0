@@ -81,7 +81,7 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
       return imageUrl;
     }
     if (imageUrl.startsWith("/")) {
-      return `https://back.neotonicglobal.com${imageUrl}`;
+      return `https://back.dsndental.com${imageUrl}`;
     }
     return imageUrl;
   };
@@ -268,12 +268,12 @@ const ProductDetails = () => {
         return image.url;
       }
       if (image.url.startsWith("/")) {
-        return `https://back.neotonicglobal.com${image.url}`;
+        return `https://back.dsndental.com${image.url}`;
       }
       if (image.url.startsWith("storage/")) {
-        return `https://back.neotonicglobal.com/${image.url}`;
+        return `https://back.dsndental.com/${image.url}`;
       }
-      return `https://back.neotonicglobal.com/${image.url}`;
+      return `https://back.dsndental.com/${image.url}`;
     }
 
     if (
@@ -305,12 +305,12 @@ const ProductDetails = () => {
         return file.file_path;
       }
       if (file.file_path.startsWith("/")) {
-        return `https://back.neotonicglobal.com${file.file_path}`;
+        return `https://back.dsndental.com${file.file_path}`;
       }
       if (file.file_path.startsWith("storage/")) {
-        return `https://back.neotonicglobal.com/${file.file_path}`;
+        return `https://back.dsndental.com/${file.file_path}`;
       }
-      return `https://back.neotonicglobal.com/${file.file_path}`;
+      return `https://back.dsndental.com/${file.file_path}`;
     }
 
     if (
