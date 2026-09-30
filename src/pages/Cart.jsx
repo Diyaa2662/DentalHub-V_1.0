@@ -38,8 +38,9 @@ const Cart = () => {
 
   // ✅ دالة لتنسيق السعر مع العملة
   const formatPrice = (price) => {
-    if (price === undefined || price === null) return `0 ${CURRENCY_SYMBOL}`;
-    return `${price.toFixed(2)} ${CURRENCY_SYMBOL}`;
+    const numericPrice = Number(price);
+    const safePrice = Number.isFinite(numericPrice) ? numericPrice : 0;
+    return `${safePrice.toFixed(2)} ${CURRENCY_SYMBOL}`;
   };
 
   useEffect(() => {
@@ -758,7 +759,7 @@ const Cart = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center mb-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
@@ -775,7 +776,7 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-xl border border-gray-200">
+                {/* <div className="bg-white p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center mb-3">
                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
                       <FaShieldAlt className="text-green-600" />
@@ -789,7 +790,7 @@ const Cart = () => {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="bg-white p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center mb-3">

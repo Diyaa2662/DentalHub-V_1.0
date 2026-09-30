@@ -26,24 +26,24 @@ const Footer = () => {
   const socialLinks = [
     {
       icon: <FaFacebook />,
-      url: "https://facebook.com/dentalhub",
+      url: "https://www.facebook.com/profile.php?id=100074439486926",
       name: "Facebook",
     },
-    {
-      icon: <FaTwitter />,
-      url: "https://twitter.com/dentalhub",
-      name: "Twitter",
-    },
+    // {
+    //   icon: <FaTwitter />,
+    //   url: "https://twitter.com/dentalhub",
+    //   name: "Twitter",
+    // },
     {
       icon: <FaInstagram />,
-      url: "https://instagram.com/dentalhub",
+      url: "https://instagram.com/dsndental",
       name: "Instagram",
     },
-    {
-      icon: <FaLinkedin />,
-      url: "https://linkedin.com/company/dentalhub",
-      name: "LinkedIn",
-    },
+    // {
+    //   icon: <FaLinkedin />,
+    //   url: "https://linkedin.com/company/dentalhub",
+    //   name: "LinkedIn",
+    // },
   ];
 
   return (
@@ -63,22 +63,34 @@ const Footer = () => {
 
               {/* معلومات الاتصال */}
               <div className="space-y-3">
-                <div className="flex items-start">
+                {/* <div className="flex items-start">
                   <FaMapMarkerAlt className="mt-1 mr-3 text-blue-400 flex-shrink-0" />
                   <span className="text-gray-300 text-sm md:text-base">
                     123 Medical Street, Dental City, DC 12345
+                  </span>
+                </div> */}
+                <div className="flex items-center">
+                  <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
+                  <span className="text-gray-300 text-sm md:text-base">
+                    070-5496374
                   </span>
                 </div>
                 <div className="flex items-center">
                   <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
                   <span className="text-gray-300 text-sm md:text-base">
-                    +1 (555) 123-4567
+                    070-0944945
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
+                  <span className="text-gray-300 text-sm md:text-base">
+                    070-0194136
                   </span>
                 </div>
                 <div className="flex items-center">
                   <FaEnvelope className="mr-3 text-blue-400 flex-shrink-0" />
                   <span className="text-gray-300 text-sm md:text-base">
-                    info@dentalhub.com
+                    info@dsndental.se
                   </span>
                 </div>
               </div>

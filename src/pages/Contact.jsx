@@ -21,21 +21,26 @@ const Contact = () => {
     {
       icon: <FaPhone className="text-2xl" />,
       title: t("contact:phoneTitle"),
-      details: ["+46 123 456 7890", "+46 987 654 3210"],
+      details: ["070-5496374", "070-0944945", "070-0194136"],
       description: t("contact:phoneDescription"),
       color: "bg-green-100 text-green-600",
     },
     {
       icon: <FaEnvelope className="text-2xl" />,
       title: t("contact:emailTitle"),
-      details: ["info@dental-equipment.com", "support@dental-equipment.com"],
+      details: ["info@dsndental.se", "faraj@dsndental.se"],
       description: t("contact:emailDescription"),
       color: "bg-blue-100 text-blue-600",
     },
     {
       icon: <FaMapMarkerAlt className="text-2xl" />,
       title: t("contact:addressTitle"),
-      details: ["Drottninggatan 123", "111 51 Stockholm, Sweden"],
+      details: [
+        "DSN DENTAL AB",
+        "Skytteholmsväge -7C",
+        "171 44 Solna ",
+        "Stockholm, Sweden",
+      ],
       description: t("contact:addressDescription"),
       color: "bg-red-100 text-red-600",
     },
@@ -120,7 +125,7 @@ const Contact = () => {
               </p>
               <div className="flex justify-center space-x-4">
                 <a
-                  href="https://wa.me/461234567890"
+                  href="https://wa.me/46705496374"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors"
@@ -129,7 +134,7 @@ const Contact = () => {
                   <FaWhatsapp className="text-xl" />
                 </a>
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/profile.php?id=100074439486926"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
@@ -137,7 +142,7 @@ const Contact = () => {
                 >
                   <FaFacebookF className="text-xl" />
                 </a>
-                <a
+                {/* <a
                   href="https://twitter.com"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -145,8 +150,8 @@ const Contact = () => {
                   title="Twitter"
                 >
                   <FaTwitter className="text-xl" />
-                </a>
-                <a
+                </a> */}
+                {/* <a
                   href="https://linkedin.com"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -154,9 +159,9 @@ const Contact = () => {
                   title="LinkedIn"
                 >
                   <FaLinkedinIn className="text-xl" />
-                </a>
+                </a> */}
                 <a
-                  href="https://instagram.com"
+                  href="https://instagram.com/dsndental"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-pink-600 hover:bg-pink-700 text-white rounded-full flex items-center justify-center transition-colors"
@@ -210,12 +215,12 @@ const Contact = () => {
             </div>
           </div>
           <div className="text-center mt-8">
-            <Link
+            {/* <Link
               to="/faq"
               className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
             >
               {t("contact:viewAllFAQ")} →
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
@@ -233,21 +238,21 @@ const Contact = () => {
           </div>
           <div className="flex flex-wrap justify-center gap-6">
             <a
-              href="tel:+461234567890"
+              href="tel:+46 70 549 63 74"
               className="inline-flex items-center bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               <FaPhone className="mr-2" />
               {t("contact:callNow")}
             </a>
             <a
-              href="mailto:info@dental-equipment.com"
+              href="mailto:info@dsndental.se"
               className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               <FaEnvelope className="mr-2" />
               {t("contact:emailNow")}
             </a>
             <a
-              href="https://wa.me/461234567890"
+              href="https://wa.me/46705496374"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
