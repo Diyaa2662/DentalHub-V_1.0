@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة وقص الاسم إلى 75 محرف وعملة kr
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -162,12 +163,12 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
             {truncatedName}
           </Link>
         </h3>
-        <div className="flex items-center mb-2">
+        {/* <div className="flex items-center mb-2">
           <div className="flex">{renderStars(product.product_rate)}</div>
           <span className="text-gray-500 text-xs ml-1">
             ({product.product_rate})
           </span>
-        </div>
+        </div> */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
             {priceInfo.isFree ? (
@@ -717,13 +718,13 @@ const ProductDetails = () => {
               )}
 
               <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   {renderStars(product.product_rate)}
                   <span className="ml-2 text-gray-600">
                     {product.product_rate} ({t("product:rating")})
                   </span>
-                </div>
-                <span className="text-gray-400">|</span>
+                </div> */}
+                {/* <span className="text-gray-400">|</span> */}
                 <span className="text-gray-600">
                   {t("product:category")}: {getCategoryName()}
                 </span>

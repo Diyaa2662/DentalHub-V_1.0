@@ -838,14 +838,14 @@ const Home = () => {
                           </p>
                         )}
 
-                        <div className="flex items-center mb-3">
+                        {/* <div className="flex items-center mb-3">
                           <div className="flex">
                             {renderStars(product.product_rate)}
                           </div>
                           <span className="text-gray-500 text-xs ml-2">
                             ({product.product_rate})
                           </span>
-                        </div>
+                        </div> */}
 
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
