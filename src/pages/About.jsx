@@ -1,4 +1,4 @@
-// src/pages/About.jsx - صفحة من نحن
+// src/pages/About.jsx - النسخة المعدلة مع container-max
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -6,9 +6,8 @@ import {
   FaShieldAlt,
   FaShippingFast,
   FaUsers,
-  FaAward,
-  FaHandsHelping,
   FaStar,
+  FaHandsHelping,
   FaHospital,
   FaBriefcaseMedical,
   FaHeartbeat,
@@ -71,60 +70,62 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* الهيدر */}
+      {/* ✅ الهيدر مع container-max */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container-max py-10">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
               {t("common:aboutUs")}
             </h1>
           </div>
         </div>
       </div>
 
-      {/* القسم الرئيسي */}
-      <div className="container mx-auto px-4 py-12">
+      {/* ✅ القسم الرئيسي */}
+      <div className="container-max py-14">
         {/* مقدمة */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
             <FaTooth className="text-3xl text-blue-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">
             {t("about:welcomeTitle")}
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             {t("about:welcomeDescription")}
           </p>
         </div>
 
         {/* قيمنا */}
         <div className="mb-20">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
             {t("about:ourValues")}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {values.map((value, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 text-center hover:shadow-xl transition-all duration-300"
+                className="bg-white p-7 rounded-2xl shadow-lg border border-gray-100 text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-5">
                   <div className="text-blue-600">{value.icon}</div>
                 </div>
                 <h4 className="text-xl font-bold text-gray-800 mb-3">
                   {value.title}
                 </h4>
-                <p className="text-gray-600">{value.description}</p>
+                <p className="text-gray-600 leading-relaxed">
+                  {value.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
         {/* مهمتنا ورؤيتنا */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
-          <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl shadow-lg border border-blue-100">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
+          <div className="bg-gradient-to-br from-blue-50 to-white p-8 md:p-9 rounded-2xl shadow-lg border border-blue-100">
             <div className="flex items-center mb-6">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mr-4">
+              <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
                 <FaStar className="text-white text-xl" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -136,9 +137,9 @@ const About = () => {
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-lg border border-gray-200">
+          <div className="bg-gradient-to-br from-gray-50 to-white p-8 md:p-9 rounded-2xl shadow-lg border border-gray-200">
             <div className="flex items-center mb-6">
-              <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mr-4">
+              <div className="w-14 h-14 bg-gray-800 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
                 <FaHospital className="text-white text-xl" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -153,7 +154,7 @@ const About = () => {
 
         {/* المحطات الرئيسية */}
         <div className="mb-20">
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-14">
             {t("about:ourJourney")}
           </h3>
           <div className="relative">
@@ -173,22 +174,28 @@ const About = () => {
 
                   {/* السنة */}
                   <div
-                    className={`lg:w-1/2 ${index % 2 === 0 ? "lg:pr-12 lg:text-right" : "lg:pl-12"}`}
+                    className={`lg:w-1/2 ${
+                      index % 2 === 0 ? "lg:pr-12 lg:text-right" : "lg:pl-12"
+                    }`}
                   >
-                    <div className="bg-blue-600 text-white font-bold text-lg px-6 py-2 rounded-lg inline-block">
+                    <div className="bg-blue-600 text-white font-bold text-lg px-6 py-2.5 rounded-lg inline-block shadow-md">
                       {milestone.year}
                     </div>
                   </div>
 
                   {/* المحتوى */}
                   <div
-                    className={`lg:w-1/2 mt-4 lg:mt-0 ${index % 2 === 0 ? "lg:pl-12" : "lg:pr-12 lg:text-right"}`}
+                    className={`lg:w-1/2 mt-4 lg:mt-0 ${
+                      index % 2 === 0 ? "lg:pl-12" : "lg:pr-12 lg:text-right"
+                    }`}
                   >
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                      <h4 className="text-xl font-bold text-gray-800 mb-2">
+                    <div className="bg-white p-7 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
+                      <h4 className="text-xl font-bold text-gray-800 mb-3">
                         {milestone.title}
                       </h4>
-                      <p className="text-gray-600">{milestone.description}</p>
+                      <p className="text-gray-600 leading-relaxed">
+                        {milestone.description}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -198,25 +205,25 @@ const About = () => {
         </div>
 
         {/* إحصائيات */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl shadow-2xl p-8 mb-20">
-          <h3 className="text-2xl font-bold text-center mb-12">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl shadow-2xl p-8 md:p-12 mb-20">
+          <h3 className="text-2xl md:text-3xl font-bold text-center mb-12">
             {t("about:byTheNumbers")}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-4xl font-bold mb-2">2,500+</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">2,500+</div>
               <div className="text-blue-200">{t("about:stat_clients")}</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold mb-2">15+</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">15+</div>
               <div className="text-blue-200">{t("about:stat_years")}</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold mb-2">5,000+</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">5,000+</div>
               <div className="text-blue-200">{t("about:stat_products")}</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold mb-2">98%</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">98%</div>
               <div className="text-blue-200">
                 {t("about:stat_satisfaction")}
               </div>
@@ -226,22 +233,22 @@ const About = () => {
 
         {/* دعوة للعمل */}
         <div className="text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
             {t("about:joinUs")}
           </h3>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-9 max-w-2xl mx-auto text-lg leading-relaxed">
             {t("about:joinDescription")}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/contact"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               {t("about:contactUs")}
             </Link>
             <Link
               to="/products"
-              className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+              className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3.5 rounded-lg font-bold text-lg transition-all shadow-md hover:shadow-lg"
             >
               {t("about:browseProducts")}
             </Link>
@@ -249,9 +256,9 @@ const About = () => {
         </div>
       </div>
 
-      {/* قسم الضمان */}
+      {/* ✅ قسم الضمان */}
       <div className="bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 py-16">
-        <div className="container mx-auto px-4">
+        <div className="container-max">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -260,7 +267,7 @@ const About = () => {
               <h4 className="text-xl font-bold text-gray-900 mb-2">
                 {t("about:guarantee_quality")}
               </h4>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t("about:guarantee_quality_desc")}
               </p>
             </div>
@@ -271,7 +278,7 @@ const About = () => {
               <h4 className="text-xl font-bold text-gray-900 mb-2">
                 {t("about:guarantee_shipping")}
               </h4>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t("about:guarantee_shipping_desc")}
               </p>
             </div>
@@ -282,7 +289,7 @@ const About = () => {
               <h4 className="text-xl font-bold text-gray-900 mb-2">
                 {t("about:guarantee_support")}
               </h4>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t("about:guarantee_support_desc")}
               </p>
             </div>

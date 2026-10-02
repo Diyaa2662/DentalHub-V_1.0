@@ -1,4 +1,4 @@
-// src/pages/Profile.jsx - النسخة المعدلة (مع دعم عملة kr)
+// src/pages/Profile.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,12 +15,9 @@ import {
   FaArrowLeft,
   FaShieldAlt,
   FaShoppingCart,
-  FaHistory,
   FaSignOutAlt,
-  FaCalendarAlt,
   FaCheckCircle,
   FaLock,
-  FaAddressCard,
 } from "react-icons/fa";
 
 const Profile = () => {
@@ -242,9 +239,9 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* زر العودة */}
-      <div className="container mx-auto px-4 pt-6">
-        <div className="flex items-center justify-between">
+      {/* ✅ زر العودة مع container-max */}
+      <div className="container-max pt-7">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <Link
             to="/"
             className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
@@ -256,7 +253,7 @@ const Profile = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={handleLogout}
-              className="inline-flex items-center text-red-600 hover:text-red-800 transition-colors"
+              className="inline-flex items-center text-red-600 hover:text-red-800 transition-colors font-medium px-4 py-2 rounded-lg hover:bg-red-50"
             >
               <FaSignOutAlt className="mr-2" />
               {t("profile:logout")}
@@ -265,14 +262,14 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8">
+      {/* ✅ المحتوى الرئيسي */}
+      <div className="container-max py-10">
         <div className="max-w-6xl mx-auto">
           {/* الهيدر */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mb-4 relative">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mb-5 relative shadow-xl">
               <FaUser className="text-white text-4xl" />
-              <div className="absolute bottom-2 right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+              <div className="absolute bottom-1 right-1 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
                 <FaCheckCircle className="text-white text-sm" />
               </div>
             </div>
@@ -282,12 +279,12 @@ const Profile = () => {
             <p className="text-gray-600">{t("profile:profileDescription")}</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
             {/* الشريط الجانبي */}
             <div className="lg:col-span-1">
               {/* معلومات الحساب */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-7 mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-5 pb-3 border-b border-gray-100">
                   {t("profile:accountInfo")}
                 </h3>
                 <div className="space-y-3">
@@ -309,7 +306,7 @@ const Profile = () => {
                       {t("profile:customer")}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div className="flex items-center justify-between py-2">
                     <span className="text-gray-600">{t("profile:status")}</span>
                     <span
                       className={`font-medium px-3 py-1 rounded-full text-sm ${
@@ -327,16 +324,16 @@ const Profile = () => {
               </div>
 
               {/* روابط سريعة */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-7">
+                <h3 className="text-xl font-bold text-gray-900 mb-5 pb-3 border-b border-gray-100">
                   {t("profile:quickLinks")}
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Link
                     to="/orders"
-                    className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-11 h-11 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
                       <FaShoppingCart className="text-blue-600" />
                     </div>
                     <div>
@@ -351,9 +348,9 @@ const Profile = () => {
 
                   <Link
                     to="/change-password"
-                    className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-11 h-11 bg-purple-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-200 transition-colors">
                       <FaLock className="text-purple-600" />
                     </div>
                     <div>
@@ -369,9 +366,9 @@ const Profile = () => {
               </div>
 
               {/* قسم الأمان */}
-              <div className="mt-6 bg-gradient-to-r from-blue-50 to-white p-6 rounded-2xl border border-blue-100">
+              <div className="mt-6 bg-gradient-to-r from-blue-50 to-white p-6 rounded-2xl border border-blue-100 shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                     <FaShieldAlt className="text-blue-600 text-xl" />
                   </div>
                   <div>
@@ -383,7 +380,7 @@ const Profile = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-blue-100">
                   <span className="text-sm text-gray-600">
                     {t("profile:lastLogin")}
                   </span>
@@ -398,13 +395,13 @@ const Profile = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
                 {/* الهيدر */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
-                  <div className="flex justify-between items-center">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-7">
+                  <div className="flex justify-between items-center flex-wrap gap-4">
                     <div>
                       <h2 className="text-2xl font-bold text-white">
                         {t("profile:personalInformation")}
                       </h2>
-                      <p className="text-blue-200">
+                      <p className="text-blue-200 mt-1">
                         {t("profile:manageYourInfo")}
                       </p>
                     </div>
@@ -412,7 +409,7 @@ const Profile = () => {
                     {!editMode ? (
                       <button
                         onClick={() => setEditMode(true)}
-                        className="inline-flex items-center bg-white text-blue-600 hover:bg-gray-100 px-5 py-2.5 rounded-lg font-medium transition-colors"
+                        className="inline-flex items-center bg-white text-blue-600 hover:bg-gray-100 px-5 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                       >
                         <FaEdit className="mr-2" />
                         {t("profile:editProfile")}
@@ -436,7 +433,7 @@ const Profile = () => {
                         <button
                           onClick={handleSave}
                           disabled={saving}
-                          className="inline-flex items-center bg-white text-green-600 hover:bg-gray-100 px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50"
+                          className="inline-flex items-center bg-white text-green-600 hover:bg-gray-100 px-5 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50"
                         >
                           <FaSave className="mr-2" />
                           {saving
@@ -472,7 +469,7 @@ const Profile = () => {
                     {/* الاسم */}
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                       <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
                           <FaUser className="text-blue-600" />
                         </div>
                         <div>
@@ -500,10 +497,10 @@ const Profile = () => {
                       )}
                     </div>
 
-                    {/* البريد الإلكتروني (غير قابل للتعديل) */}
+                    {/* البريد الإلكتروني */}
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                       <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
                           <FaEnvelope className="text-blue-600" />
                         </div>
                         <div>
@@ -515,7 +512,7 @@ const Profile = () => {
                           </p>
                         </div>
                       </div>
-                      <p className="text-lg font-medium text-gray-900 p-3 bg-white rounded-lg border border-gray-200">
+                      <p className="text-lg font-medium text-gray-900 p-3 bg-white rounded-lg border border-gray-200 break-all">
                         {profileData?.email || t("profile:notProvided")}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
@@ -526,7 +523,7 @@ const Profile = () => {
                     {/* رقم الهاتف */}
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                       <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
                           <FaPhone className="text-blue-600" />
                         </div>
                         <div>
@@ -557,7 +554,7 @@ const Profile = () => {
                     {/* العنوان */}
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                       <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
                           <FaMapMarkerAlt className="text-blue-600" />
                         </div>
                         <div>
@@ -579,7 +576,7 @@ const Profile = () => {
                           placeholder={t("profile:enterYourAddress")}
                         />
                       ) : (
-                        <p className="text-lg font-medium text-gray-900 p-3 bg-white rounded-lg border border-gray-200">
+                        <p className="text-lg font-medium text-gray-900 p-3 bg-white rounded-lg border border-gray-200 min-h-[60px]">
                           {profileData?.address || t("profile:notProvided")}
                         </p>
                       )}
@@ -588,20 +585,20 @@ const Profile = () => {
 
                   {/* معلومات إضافية */}
                   {!editMode && (
-                    <div className="mt-8 pt-8 border-t border-gray-200">
+                    <div className="mt-10 pt-8 border-t border-gray-200">
                       <h3 className="text-xl font-bold text-gray-900 mb-6">
                         {t("profile:accountDetails")}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="text-center bg-blue-50 p-6 rounded-xl">
-                          <div className="text-3xl font-bold text-blue-600 mb-2">
+                        <div className="text-center bg-blue-50 p-7 rounded-xl border border-blue-100">
+                          <div className="text-4xl font-bold text-blue-600 mb-2">
                             {profileData?.orders_count || 0}
                           </div>
                           <div className="text-gray-700 font-medium">
                             {t("profile:totalOrders")}
                           </div>
                         </div>
-                        <div className="text-center bg-purple-50 p-6 rounded-xl">
+                        <div className="text-center bg-purple-50 p-7 rounded-xl border border-purple-100">
                           <div className="text-3xl font-bold text-purple-600 mb-2">
                             {formatPrice(profileData?.total_spent || "0.00")}
                           </div>

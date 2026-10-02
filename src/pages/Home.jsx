@@ -24,6 +24,9 @@ const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  // ✅ حالة إضافة المنتجات للسلة
+  const [addingToCart, setAddingToCart] = useState({});
+
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -173,6 +176,7 @@ const Home = () => {
     }, 3000);
   };
 
+  // ✅ handleAddToCart معدل مع دعم addingToCart state
   const handleAddToCart = async (productId) => {
     const token = localStorage.getItem("customerToken");
     if (!token) {
@@ -184,6 +188,14 @@ const Home = () => {
       );
       return;
     }
+
+    // ✅ إذا كان المنتج بالفعل قيد الإضافة، تجاهل الضغطة
+    if (addingToCart[productId]) {
+      return;
+    }
+
+    // ✅ ضبط حالة التحميل لهذا المنتج
+    setAddingToCart((prev) => ({ ...prev, [productId]: true }));
 
     try {
       const response = await api.post(
@@ -251,6 +263,9 @@ const Home = () => {
             : "Could not add product to cart");
         showNotification(errorMessage, "error");
       }
+    } finally {
+      // ✅ إزالة حالة التحميل
+      setAddingToCart((prev) => ({ ...prev, [productId]: false }));
     }
   };
 
@@ -441,9 +456,9 @@ const Home = () => {
         </div>
       )}
 
-      {/* السلايدر */}
+      {/* ✅ السلايدر */}
       <section
-        className="relative pt-16 md:pt-0 md:h-[500px] overflow-hidden bg-gradient-to-r from-blue-500 to-blue-200"
+        className="relative md:h-[600px] overflow-hidden bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400"
         onMouseEnter={stopAutoSlide}
         onMouseLeave={startAutoSlide}
       >
@@ -451,7 +466,7 @@ const Home = () => {
           <div className="relative w-full h-full">
             <div className="h-full">
               <div
-                className="flex transition-transform duration-500 ease-in-out h-full"
+                className="flex transition-transform duration-700 ease-in-out h-full"
                 style={{ transform: `translateX(-${currentSlide * 100}%)` }}
               >
                 {sliderProducts.map((product, index) => {
@@ -462,6 +477,8 @@ const Home = () => {
                     true,
                   );
                   const productImageUrl = getProductImageUrl(product);
+                  // ✅ حالة التحميل لهذا المنتج
+                  const isAdding = addingToCart[product.id] || false;
 
                   return (
                     <div
@@ -469,24 +486,16 @@ const Home = () => {
                       className="min-w-full h-full flex-shrink-0"
                     >
                       {isMobile ? (
-                        <div className="h-full flex flex-col items-center justify-center px-4 py-8">
+                        <div className="h-full flex flex-col items-center justify-start px-6 py-10">
                           <div className="w-full max-w-xs mb-6">
                             {productImageUrl ? (
                               <img
                                 src={productImageUrl}
                                 alt={productName}
-                                className="rounded-lg shadow-xl w-full h-auto object-contain max-h-56"
+                                className="rounded-xl shadow-2xl w-full h-auto object-contain max-h-56 bg-white p-3"
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.style.display = "none";
-                                  const parent = e.target.parentElement;
-                                  const fallback =
-                                    document.createElement("div");
-                                  fallback.className =
-                                    "w-full h-full bg-gray-200 flex items-center justify-center";
-                                  fallback.innerHTML =
-                                    '<span class="text-gray-400">No Image</span>';
-                                  parent.appendChild(fallback);
                                 }}
                               />
                             ) : (
@@ -508,13 +517,13 @@ const Home = () => {
                               {productDescription}
                             </p>
 
-                            <div className="flex flex-col items-center justify-center mb-4">
+                            <div className="flex flex-col items-center justify-center mb-5">
                               {priceInfo.isFree ? (
                                 <div className="flex flex-col items-center">
-                                  <span className="text-3xl font-bold text-green-500">
+                                  <span className="text-3xl font-bold text-green-300">
                                     {i18n.language === "sv" ? "GRATIS" : "FREE"}
                                   </span>
-                                  <span className="text-base line-through text-gray-300 mt-1">
+                                  <span className="text-base line-through text-gray-200 mt-1">
                                     {priceInfo.originalPrice?.toFixed(2)}{" "}
                                     <span className="text-xs">
                                       {CURRENCY_SYMBOL}
@@ -523,16 +532,16 @@ const Home = () => {
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center">
-                                  <span className="text-2xl font-bold">
+                                  <span className="text-3xl font-bold">
                                     {priceInfo.displayPrice.toFixed(2)}{" "}
-                                    <span className="text-sm font-normal">
+                                    <span className="text-base font-normal">
                                       {CURRENCY_SYMBOL}
                                     </span>
                                   </span>
                                   {priceInfo.hasDiscount &&
                                     priceInfo.displayPrice > 0 && (
-                                      <div className="flex items-center mt-1">
-                                        <span className="text-base line-through text-gray-300 mr-2">
+                                      <div className="flex items-center mt-2">
+                                        <span className="text-base line-through text-gray-200 mr-2">
                                           {priceInfo.originalPrice.toFixed(2)}{" "}
                                           <span className="text-xs">
                                             {CURRENCY_SYMBOL}
@@ -550,114 +559,142 @@ const Home = () => {
                             <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
                               <Link
                                 to={`/product/${product.id}`}
-                                className="inline-flex items-center justify-center bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm"
+                                className="inline-flex items-center justify-center bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm shadow-lg"
                               >
                                 <FaEye className="mr-2" />{" "}
                                 {t("common:viewDetails")}
                               </Link>
+                              {/* ✅ زر الإضافة مع حالة تحميل */}
                               <button
                                 onClick={() => handleAddToCart(product.id)}
-                                className="inline-flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm"
+                                disabled={isAdding}
+                                className={`inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold transition-colors text-sm shadow-lg ${
+                                  isAdding
+                                    ? "bg-green-700 cursor-not-allowed"
+                                    : "bg-green-600 hover:bg-green-700 text-white"
+                                }`}
                               >
-                                <FaShoppingCart className="mr-2" />{" "}
-                                {t("common:addToCart")}
+                                {isAdding ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
+                                    {t("common:addingToCart")}
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaShoppingCart className="mr-2" />{" "}
+                                    {t("common:addToCart")}
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="container mx-auto px-4 h-full flex items-center justify-between">
-                          <div className="w-1/2 text-white pr-8">
-                            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                              {productName}
-                            </h2>
-                            <p className="text-lg lg:text-xl mb-6 opacity-90 line-clamp-3">
-                              {getProductDescription(product, false)}
-                            </p>
-                            <div className="flex flex-wrap items-center mb-6">
-                              {priceInfo.isFree ? (
-                                <div className="flex flex-col">
-                                  <span className="text-5xl font-bold text-green-500 mr-4">
-                                    {i18n.language === "sv" ? "GRATIS" : "FREE"}
-                                  </span>
-                                  <span className="text-2xl line-through text-gray-300">
-                                    {priceInfo.originalPrice?.toFixed(2)}{" "}
-                                    <span className="text-sm">
-                                      {CURRENCY_SYMBOL}
+                        <div className="h-full w-full flex items-center">
+                          <div className="container-max w-full grid grid-cols-12 gap-8 items-center">
+                            <div className="col-span-6 text-white">
+                              <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-5 leading-tight">
+                                {productName}
+                              </h2>
+                              <p className="text-lg lg:text-xl mb-8 opacity-90 line-clamp-3 leading-relaxed">
+                                {getProductDescription(product, false)}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-4 mb-8">
+                                {priceInfo.isFree ? (
+                                  <div className="flex items-baseline gap-3">
+                                    <span className="text-5xl font-bold text-green-300">
+                                      {i18n.language === "sv"
+                                        ? "GRATIS"
+                                        : "FREE"}
                                     </span>
-                                  </span>
-                                </div>
-                              ) : (
-                                <>
-                                  <span className="text-4xl font-bold mr-4">
-                                    {priceInfo.displayPrice.toFixed(2)}{" "}
-                                    <span className="text-xl font-normal">
-                                      {CURRENCY_SYMBOL}
+                                    <span className="text-2xl line-through text-gray-200">
+                                      {priceInfo.originalPrice?.toFixed(2)}{" "}
+                                      <span className="text-sm">
+                                        {CURRENCY_SYMBOL}
+                                      </span>
                                     </span>
-                                  </span>
-                                  {priceInfo.hasDiscount &&
-                                    priceInfo.displayPrice > 0 && (
-                                      <>
-                                        <span className="text-xl line-through text-gray-300 mr-4">
-                                          {priceInfo.originalPrice.toFixed(2)}{" "}
-                                          <span className="text-sm">
-                                            {CURRENCY_SYMBOL}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-4xl lg:text-5xl font-bold">
+                                      {priceInfo.displayPrice.toFixed(2)}{" "}
+                                      <span className="text-xl font-normal">
+                                        {CURRENCY_SYMBOL}
+                                      </span>
+                                    </span>
+                                    {priceInfo.hasDiscount &&
+                                      priceInfo.displayPrice > 0 && (
+                                        <>
+                                          <span className="text-2xl line-through text-gray-200">
+                                            {priceInfo.originalPrice.toFixed(2)}{" "}
+                                            <span className="text-sm">
+                                              {CURRENCY_SYMBOL}
+                                            </span>
                                           </span>
-                                        </span>
-                                        <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                                          -{priceInfo.discountPercentage}%
-                                        </span>
-                                      </>
-                                    )}
-                                </>
-                              )}
+                                          <span className="bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                            -{priceInfo.discountPercentage}%
+                                          </span>
+                                        </>
+                                      )}
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-4">
+                                <Link
+                                  to={`/product/${product.id}`}
+                                  className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5"
+                                >
+                                  <FaEye className="mr-2" />{" "}
+                                  {t("common:viewDetails")}
+                                </Link>
+                                {/* ✅ زر الإضافة مع حالة تحميل */}
+                                <button
+                                  onClick={() => handleAddToCart(product.id)}
+                                  disabled={isAdding}
+                                  className={`inline-flex items-center px-8 py-4 rounded-lg font-bold transition-all shadow-xl transform ${
+                                    isAdding
+                                      ? "bg-green-700 cursor-not-allowed shadow-lg"
+                                      : "bg-green-600 hover:bg-green-700 hover:shadow-2xl hover:-translate-y-0.5"
+                                  } text-white`}
+                                >
+                                  {isAdding ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-2"></div>
+                                      {t("common:addingToCart")}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaShoppingCart className="mr-2" />{" "}
+                                      {t("common:addToCart")}
+                                    </>
+                                  )}
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex gap-3">
-                              <Link
-                                to={`/product/${product.id}`}
-                                className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-                              >
-                                <FaEye className="mr-2" />{" "}
-                                {t("common:viewDetails")}
-                              </Link>
-                              <button
-                                onClick={() => handleAddToCart(product.id)}
-                                className="inline-flex items-center bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
-                              >
-                                <FaShoppingCart className="mr-2" />{" "}
-                                {t("common:addToCart")}
-                              </button>
-                            </div>
-                          </div>
 
-                          <div className="w-1/2 flex justify-center">
-                            <div className="max-w-lg">
-                              {productImageUrl ? (
-                                <img
-                                  src={productImageUrl}
-                                  alt={productName}
-                                  className="rounded-lg shadow-xl w-full h-auto object-contain max-h-80"
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                    const parent = e.target.parentElement;
-                                    const fallback =
-                                      document.createElement("div");
-                                    fallback.className =
-                                      "w-full h-full bg-white/20 rounded-lg flex items-center justify-center";
-                                    fallback.innerHTML = `<span class="text-white text-xl">${i18n.language === "sv" ? "Ingen bild tillgänglig" : "No image available"}</span>`;
-                                    parent.appendChild(fallback);
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-64 bg-white/20 rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-xl">
-                                    {i18n.language === "sv"
-                                      ? "Ingen bild tillgänglig"
-                                      : "No image available"}
-                                  </span>
-                                </div>
-                              )}
+                            <div className="col-span-6 flex justify-center items-center">
+                              <div className="relative max-w-lg w-full">
+                                <div className="absolute inset-0 bg-white/10 rounded-2xl blur-2xl"></div>
+                                {productImageUrl ? (
+                                  <img
+                                    src={productImageUrl}
+                                    alt={productName}
+                                    className="relative rounded-2xl shadow-2xl w-full h-auto object-contain max-h-[420px] bg-white p-4"
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.style.display = "none";
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="relative w-full h-80 bg-white/20 rounded-2xl flex items-center justify-center">
+                                    <span className="text-white text-xl">
+                                      {i18n.language === "sv"
+                                        ? "Ingen bild tillgänglig"
+                                        : "No image available"}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -668,36 +705,40 @@ const Home = () => {
               </div>
             </div>
 
+            {/* أزرار التنقل */}
             <button
               onClick={prevSlide}
-              className={`absolute top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10 ${
-                isMobile ? "left-2" : "left-4"
+              className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-blue-600 shadow-xl hover:shadow-2xl rounded-full transition-all duration-300 z-20 flex items-center justify-center ${
+                isMobile ? "left-3 w-10 h-10" : "left-6 w-12 h-12"
               }`}
               aria-label="Previous Slide"
             >
-              <FaChevronLeft className={isMobile ? "text-sm" : ""} />
+              <FaChevronLeft className={isMobile ? "text-sm" : "text-lg"} />
             </button>
             <button
               onClick={nextSlide}
-              className={`absolute top-1/2 transform -translate-y-1/2 bg-blue-700/80 hover:bg-blue-700 text-white p-2 sm:p-3 rounded-full transition-colors z-10 ${
-                isMobile ? "right-2" : "right-4"
+              className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-blue-600 shadow-xl hover:shadow-2xl rounded-full transition-all duration-300 z-20 flex items-center justify-center ${
+                isMobile ? "right-3 w-10 h-10" : "right-6 w-12 h-12"
               }`}
               aria-label="Next Slide"
             >
-              <FaChevronRight className={isMobile ? "text-sm" : ""} />
+              <FaChevronRight className={isMobile ? "text-sm" : "text-lg"} />
             </button>
 
+            {/* المؤشرات */}
             <div
-              className={`absolute ${isMobile ? "bottom-4" : "bottom-8"} left-1/2 transform -translate-x-1/2 flex space-x-2 z-10`}
+              className={`absolute ${
+                isMobile ? "bottom-4" : "bottom-6"
+              } left-1/2 -translate-x-1/2 flex space-x-2.5 z-20`}
             >
               {sliderProducts.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`${isMobile ? "w-2 h-2" : "w-3 h-3"} rounded-full transition-colors ${
+                  className={`transition-all duration-300 rounded-full ${
                     index === currentSlide
-                      ? "bg-white"
-                      : "bg-white/50 hover:bg-white/70"
+                      ? "bg-white w-8 h-2.5"
+                      : "bg-white/50 hover:bg-white/80 w-2.5 h-2.5"
                   }`}
                   aria-label={`Slide ${index + 1}`}
                 />
@@ -705,20 +746,20 @@ const Home = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-white text-2xl px-4 text-center pt-16 md:pt-0">
+          <div className="flex items-center justify-center h-full text-white text-2xl px-4 text-center py-20">
             {t("common:noProducts")}
           </div>
         )}
       </section>
 
-      {/* أقسام الفئات */}
-      <main className="container mx-auto px-4 py-8">
+      {/* ✅ أقسام الفئات */}
+      <main className="container-max py-12">
         {categoriesData.length > 0 ? (
           categoriesData.map((category) => (
-            <section key={category.category_id} className="mb-12">
-              <div className="flex justify-between items-center mb-6">
+            <section key={category.category_id} className="mb-14">
+              <div className="flex justify-between items-center mb-7">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 capitalize">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800 capitalize">
                     {category.category === "other"
                       ? t("common:otherProducts")
                       : category.category}
@@ -729,13 +770,13 @@ const Home = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => scrollLeft(category.category)}
-                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
+                      className="p-2.5 rounded-full bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 transition-all shadow-sm hover:shadow"
                     >
                       <FaChevronLeft />
                     </button>
                     <button
                       onClick={() => scrollRight(category.category)}
-                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
+                      className="p-2.5 rounded-full bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 transition-all shadow-sm hover:shadow"
                     >
                       <FaChevronRight />
                     </button>
@@ -756,6 +797,8 @@ const Home = () => {
                   const priceInfo = getDisplayPrice(product);
                   const productName = getProductName(product);
                   const productImageUrl = getProductImageUrl(product);
+                  // ✅ حالة التحميل لهذا المنتج
+                  const isAdding = addingToCart[product.id] || false;
 
                   return (
                     <div
@@ -818,7 +861,6 @@ const Home = () => {
                       </div>
 
                       <div className="p-4">
-                        {/* ✅ اسم المنتج مقصوص مع title للـ hover */}
                         <h3 className="font-bold text-gray-800 text-base mb-1 hover:text-blue-600 transition-colors">
                           <Link
                             to={`/product/${product.id}`}
@@ -828,7 +870,6 @@ const Home = () => {
                           </Link>
                         </h3>
 
-                        {/* ✅ Article Number */}
                         {product.artical && (
                           <p className="text-xs text-gray-500 mb-2">
                             {t("common:article")}:{" "}
@@ -837,15 +878,6 @@ const Home = () => {
                             </span>
                           </p>
                         )}
-
-                        {/* <div className="flex items-center mb-3">
-                          <div className="flex">
-                            {renderStars(product.product_rate)}
-                          </div>
-                          <span className="text-gray-500 text-xs ml-2">
-                            ({product.product_rate})
-                          </span>
-                        </div> */}
 
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
@@ -886,12 +918,26 @@ const Home = () => {
                               </>
                             )}
                           </div>
+                          {/* ✅ زر الإضافة مع حالة تحميل */}
                           <button
                             onClick={() => handleAddToCart(product.id)}
-                            className="text-gray-400 hover:text-blue-600 transition-colors"
-                            title={t("common:addToCart")}
+                            disabled={isAdding}
+                            className={`transition-all p-2 rounded-lg ${
+                              isAdding
+                                ? "text-gray-400 cursor-not-allowed bg-gray-100"
+                                : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                            }`}
+                            title={
+                              isAdding
+                                ? t("common:addingToCart")
+                                : t("common:addToCart")
+                            }
                           >
-                            <FaShoppingCart size={24} />
+                            {isAdding ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
+                            ) : (
+                              <FaShoppingCart size={24} />
+                            )}
                           </button>
                         </div>
 
@@ -920,23 +966,25 @@ const Home = () => {
         )}
       </main>
 
-      {/* دعوة للعمل */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">{t("home:cta_title")}</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
+      {/* ✅ دعوة للعمل */}
+      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
+        <div className="container-max text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-5">
+            {t("home:cta_title")}
+          </h2>
+          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
             {t("home:cta_subtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/products"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-bold text-lg transition-colors shadow-lg hover:shadow-xl"
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               {t("home:cta_viewProducts")}
             </Link>
             <Link
               to="/contact"
-              className="bg-transparent border-2 border-white hover:bg-white/10 px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+              className="bg-transparent border-2 border-white hover:bg-white/10 px-8 py-4 rounded-lg font-bold text-lg transition-all"
             >
               {t("home:cta_contactSales")}
             </Link>

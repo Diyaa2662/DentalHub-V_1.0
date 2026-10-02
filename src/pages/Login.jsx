@@ -1,4 +1,4 @@
-// src/pages/Login.jsx - النسخة المعدلة مع اسم توكن مختلف
+// src/pages/Login.jsx - النسخة المعدلة مع container-max
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,31 +48,23 @@ const Login = () => {
       const response = await api.post("/login", formData);
 
       if (response.data && response.data.user && response.data.token) {
-        // حفظ بيانات المستخدم في localStorage
         const userData = response.data.user;
         const token = response.data.token;
 
-        // ⭐ استخدم اسم توكن مختلف لتجنب التعارض مع مشروع الداشبورد
         localStorage.setItem("customerToken", token);
-
-        // حفظ بيانات المستخدم
         localStorage.setItem("customerData", JSON.stringify(userData));
 
-        // إذا كان rememberMe، نحفظ البريد في localStorage
         if (rememberMe) {
           localStorage.setItem("customerEmail", formData.email);
         } else {
           localStorage.removeItem("customerEmail");
         }
 
-        // حفظ في sessionStorage أيضاً
         sessionStorage.setItem("customerToken", token);
         sessionStorage.setItem("customerData", JSON.stringify(userData));
 
-        // ⭐ توجيه المستجر للصفحة الرئيسية فقط
         navigate("/");
 
-        // ⭐ إعادة تحميل الصفحة بعد توجيه ناجح لتحديث حالة الهيدر
         setTimeout(() => {
           window.location.reload();
         }, 100);
@@ -82,9 +74,7 @@ const Login = () => {
     } catch (err) {
       console.error("❌ Login error:", err);
 
-      // عرض رسالة الخطأ المناسبة
       if (err.response) {
-        // خطأ من السيرفر
         if (err.response.status === 401) {
           setError(t("auth:invalidCredentials"));
         } else if (err.response.status === 422) {
@@ -93,10 +83,8 @@ const Login = () => {
           setError(err.response.data?.message || t("auth:serverError"));
         }
       } else if (err.request) {
-        // لا يوجد اتصال بالسيرفر
         setError(t("auth:networkError"));
       } else {
-        // خطأ آخر
         setError(t("auth:unknownError"));
       }
     } finally {
@@ -106,8 +94,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
-      {/* زر العودة */}
-      <div className="container mx-auto px-4 pt-6">
+      {/* ✅ زر العودة مع container-max */}
+      <div className="container-max pt-6">
         <Link
           to="/"
           className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
@@ -117,8 +105,8 @@ const Login = () => {
         </Link>
       </div>
 
-      {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+      {/* ✅ المحتوى الرئيسي */}
+      <div className="container-max py-8 flex items-center justify-center">
         <div className="w-full max-w-4xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* قسم الصورة والمعلومات */}
@@ -139,7 +127,7 @@ const Login = () => {
                 {/* ميزات الحساب */}
                 <div className="space-y-6">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaShoppingCart className="text-white" />
                     </div>
                     <div>
@@ -153,7 +141,7 @@ const Login = () => {
                   </div>
 
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaHeart className="text-white" />
                     </div>
                     <div>
@@ -167,7 +155,7 @@ const Login = () => {
                   </div>
 
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaShieldAlt className="text-white" />
                     </div>
                     <div>
@@ -209,7 +197,7 @@ const Login = () => {
 
             {/* قسم تسجيل الدخول */}
             <div>
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-7 md:p-8">
                 {/* الهيدر */}
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
@@ -256,7 +244,7 @@ const Login = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder={t("auth:emailPlaceholder")}
                       />
                       <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -280,7 +268,7 @@ const Login = () => {
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder={t("auth:passwordPlaceholder")}
                       />
                       <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -289,23 +277,27 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label="Toggle password visibility"
                       >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                   </div>
 
-                  {/* تذكرني فقط */}
+                  {/* تذكرني */}
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       id="rememberMe"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                     />
-                    <label htmlFor="rememberMe" className="ml-2 text-gray-700">
+                    <label
+                      htmlFor="rememberMe"
+                      className="ml-2 text-gray-700 cursor-pointer"
+                    >
                       {t("auth:rememberMe")}
                     </label>
                   </div>
@@ -340,7 +332,7 @@ const Login = () => {
                     {t("auth:noAccount")}{" "}
                     <Link
                       to="/register"
-                      className="text-blue-600 hover:text-blue-800 font-bold"
+                      className="text-blue-600 hover:text-blue-800 font-bold transition-colors"
                     >
                       {t("auth:createAccount")}
                     </Link>
@@ -379,12 +371,12 @@ const Login = () => {
         </div>
       </div>
 
-      {/* قسم الأمان */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center mb-4 md:mb-0">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+      {/* ✅ قسم الأمان */}
+      <div className="container-max py-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-7">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                 <FaShieldAlt className="text-green-600 text-xl" />
               </div>
               <div>
@@ -396,7 +388,7 @@ const Login = () => {
                 </p>
               </div>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">HTTPS</div>
                 <div className="text-xs text-gray-500">

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-// src/pages/ProductDetails.jsx - النسخة المعدلة مع دعم external_url وأزرار التحريك والعلاقات المباشرة وقص الاسم إلى 75 محرف وعملة kr
+// src/pages/ProductDetails.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -25,25 +25,22 @@ import {
   FaRandom,
 } from "react-icons/fa";
 
-// ========== مكون كرت المنتج للعلاقات (معدل لاستخدام البيانات المباشرة) ==========
+// ========== مكون كرت المنتج للعلاقات ==========
 const RelatedProductCard = ({ product, onAddToCart }) => {
   const { t, i18n } = useTranslation(["common", "product"]);
   const [isAdding, setIsAdding] = useState(false);
 
-  // ✅ دالة لقص النص إلى عدد محدد من المحارف
   const truncateText = (text, maxLength = 75) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
 
-  // ✅ الحصول على اسم المنتج حسب اللغة (السويدية أو الإنجليزية)
   const getProductName = (prod) => {
     if (i18n.language === "sv" && prod.s_name) return prod.s_name;
     return prod.name || "";
   };
 
-  // ✅ الحصول على السعر المعروض
   const getDisplayPrice = (prod) => {
     const price = parseFloat(prod.price) || 0;
     const discountPrice = parseFloat(prod.discount_price) || 0;
@@ -74,10 +71,8 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
     };
   };
 
-  // ✅ دالة لإنشاء رابط الصورة (مع دعم external_url)
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
-
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
       return imageUrl;
     }
@@ -85,23 +80,6 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
       return `https://back.dsndental.com${imageUrl}`;
     }
     return imageUrl;
-  };
-
-  const renderStars = (rating) => {
-    const stars = [];
-    const ratingNum = parseFloat(rating) || 0;
-    const fullStars = Math.floor(ratingNum);
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <FaStar
-          key={i}
-          className={
-            i < fullStars ? "text-yellow-500 text-sm" : "text-gray-300 text-sm"
-          }
-        />,
-      );
-    }
-    return stars;
   };
 
   const handleAdd = async () => {
@@ -118,13 +96,13 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
     : null;
 
   return (
-    <div className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group">
-      <div className="relative h-40 bg-gray-100 overflow-hidden">
+    <div className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 group flex flex-col">
+      <div className="relative h-44 bg-gray-100 overflow-hidden">
         {productImageUrl ? (
           <img
             src={productImageUrl}
             alt={productName}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-1"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-2"
             onError={(e) => {
               e.target.onerror = null;
               e.target.style.display = "none";
@@ -143,9 +121,13 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
           </div>
         )}
         {priceInfo.hasDiscount && (
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-3 left-3">
             <div
-              className={`text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg ${priceInfo.isFree ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}`}
+              className={`text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg ${
+                priceInfo.isFree
+                  ? "bg-gradient-to-r from-green-500 to-green-600"
+                  : "bg-gradient-to-r from-red-500 to-red-600"
+              }`}
             >
               {priceInfo.isFree
                 ? i18n.language === "sv"
@@ -156,58 +138,60 @@ const RelatedProductCard = ({ product, onAddToCart }) => {
           </div>
         )}
       </div>
-      <div className="p-3">
-        {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
-        <h3 className="font-bold text-gray-800 text-sm mb-1 hover:text-blue-600 transition-colors">
+      <div className="p-3 flex flex-col flex-grow">
+        <h3 className="font-bold text-gray-800 text-sm mb-2 hover:text-blue-600 transition-colors line-clamp-2">
           <Link to={`/product/${product.id}`} title={productName}>
             {truncatedName}
           </Link>
         </h3>
-        {/* <div className="flex items-center mb-2">
-          <div className="flex">{renderStars(product.product_rate)}</div>
-          <span className="text-gray-500 text-xs ml-1">
-            ({product.product_rate})
-          </span>
-        </div> */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center">
-            {priceInfo.isFree ? (
-              <span className="text-lg font-bold text-green-600">
-                {i18n.language === "sv" ? "GRATIS" : "FREE"}
-              </span>
-            ) : (
-              <>
-                <span className="text-lg font-bold text-blue-600">
-                  {priceInfo.displayPrice.toFixed(2)}{" "}
-                  <span className="text-xs font-normal">{CURRENCY_SYMBOL}</span>
+        <div className="mt-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center flex-wrap gap-1">
+              {priceInfo.isFree ? (
+                <span className="text-lg font-bold text-green-600">
+                  {i18n.language === "sv" ? "GRATIS" : "FREE"}
                 </span>
-                {priceInfo.hasDiscount && priceInfo.displayPrice > 0 && (
-                  <span className="text-gray-400 line-through text-xs ml-1">
-                    {priceInfo.originalPrice.toFixed(2)}{" "}
-                    <span className="text-xs">{CURRENCY_SYMBOL}</span>
+              ) : (
+                <>
+                  <span className="text-lg font-bold text-blue-600">
+                    {priceInfo.displayPrice.toFixed(2)}{" "}
+                    <span className="text-xs font-normal">
+                      {CURRENCY_SYMBOL}
+                    </span>
                   </span>
-                )}
-              </>
-            )}
+                  {priceInfo.hasDiscount && priceInfo.displayPrice > 0 && (
+                    <span className="text-gray-400 line-through text-xs ml-1">
+                      {priceInfo.originalPrice.toFixed(2)}{" "}
+                      <span className="text-xs">{CURRENCY_SYMBOL}</span>
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            <button
+              onClick={handleAdd}
+              disabled={isAdding}
+              className={`transition-all p-1.5 rounded-lg ${
+                isAdding
+                  ? "text-gray-400 cursor-not-allowed bg-gray-100"
+                  : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              aria-label={t("common:addToCart")}
+            >
+              {isAdding ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-blue-600"></div>
+              ) : (
+                <FaShoppingCart size={18} />
+              )}
+            </button>
           </div>
-          <button
-            onClick={handleAdd}
-            disabled={isAdding}
-            className="text-gray-400 hover:text-blue-600 transition-colors"
+          <Link
+            to={`/product/${product.id}`}
+            className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2 rounded-lg font-medium text-center text-xs transition-all shadow-md hover:shadow-lg"
           >
-            {isAdding ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-blue-600"></div>
-            ) : (
-              <FaShoppingCart size={18} />
-            )}
-          </button>
+            {t("common:viewDetails")}
+          </Link>
         </div>
-        <Link
-          to={`/product/${product.id}`}
-          className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-1.5 rounded-lg font-medium text-center text-xs transition-all"
-        >
-          {t("common:viewDetails")}
-        </Link>
       </div>
     </div>
   );
@@ -227,7 +211,7 @@ const ProductDetails = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
 
-  // ✅ حالات للمنتجات المرتبطة - تأتي مباشرة من API بدون طلبات إضافية
+  // ✅ حالات للمنتجات المرتبطة
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [accessoryProducts, setAccessoryProducts] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
@@ -241,7 +225,6 @@ const ProductDetails = () => {
 
   useEffect(() => {
     fetchProductDetails();
-    // ✅ التمرير إلى أعلى الصفحة عند تحميل الصفحة
     window.scrollTo({ top: 0, behavior: "smooth" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, i18n.language]);
@@ -326,7 +309,7 @@ const ProductDetails = () => {
     return null;
   };
 
-  // ✅ دالة لجلب تفاصيل المنتج (معدلة - تستخدم البيانات المباشرة من relations)
+  // ✅ دالة لجلب تفاصيل المنتج
   const fetchProductDetails = async () => {
     try {
       setLoading(true);
@@ -334,9 +317,7 @@ const ProductDetails = () => {
       const productData = response.data.data;
       setProduct(productData);
 
-      // ✅ معالجة العلاقات مباشرة من البيانات دون طلبات إضافية
       if (productData.relations) {
-        // معالجة المنتجات المرتبطة (related)
         if (
           productData.relations.related &&
           productData.relations.related.length > 0
@@ -346,7 +327,6 @@ const ProductDetails = () => {
           setRelatedProducts([]);
         }
 
-        // معالجة المنتجات الملحقة (accessory)
         if (
           productData.relations.accessory &&
           productData.relations.accessory.length > 0
@@ -356,7 +336,6 @@ const ProductDetails = () => {
           setAccessoryProducts([]);
         }
 
-        // معالجة المنتجات المتشابهة (similar)
         if (
           productData.relations.similar &&
           productData.relations.similar.length > 0
@@ -366,7 +345,6 @@ const ProductDetails = () => {
           setSimilarProducts([]);
         }
 
-        // معالجة المنتجات المتغيرة (variation) - إذا وجدت
         if (
           productData.relations.variation &&
           productData.relations.variation.length > 0
@@ -525,7 +503,6 @@ const ProductDetails = () => {
     return stars;
   };
 
-  // ✅ التحقق من وجود معلومات إضافية (يدعم المصفوفة)
   const hasAdditionalInfo =
     product?.additonalinfo &&
     Array.isArray(product.additonalinfo) &&
@@ -583,11 +560,19 @@ const ProductDetails = () => {
       {/* تنبيهات */}
       {notification.show && (
         <div
-          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${notification.type === "success" ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"} border rounded-lg shadow-lg p-4 max-w-sm`}
+          className={`fixed top-4 right-4 z-50 animate-fade-in-down ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          } border rounded-lg shadow-lg p-4 max-w-sm`}
         >
           <div className="flex items-start">
             <div
-              className={`flex-shrink-0 ${notification.type === "success" ? "text-green-400" : "text-red-400"}`}
+              className={`flex-shrink-0 ${
+                notification.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
             >
               {notification.type === "success" ? (
                 <FaCheckCircle className="text-lg" />
@@ -603,18 +588,21 @@ const ProductDetails = () => {
       )}
 
       {/* شريط التنقل */}
-      <div className="bg-white border-b border-gray-200 py-3">
-        <div className="container mx-auto px-4">
+      <div className="bg-white border-b border-gray-200 py-4">
+        <div className="container-max">
           <div className="flex items-center text-sm text-gray-600">
-            <Link to="/" className="hover:text-blue-600">
+            <Link to="/" className="hover:text-blue-600 transition-colors">
               {t("product:breadcrumb_home")}
             </Link>
             <span className="mx-2">/</span>
-            <Link to="/products" className="hover:text-blue-600">
+            <Link
+              to="/products"
+              className="hover:text-blue-600 transition-colors"
+            >
               {t("product:breadcrumb_products")}
             </Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-800 font-medium truncate max-w-xs">
+            <span className="text-gray-800 font-medium truncate max-w-md">
               {getProductName()}
             </span>
           </div>
@@ -622,17 +610,17 @@ const ProductDetails = () => {
       </div>
 
       {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="container-max py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
           {/* قسم الصور */}
-          <div className="space-y-4">
-            <div className="relative bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+          <div className="space-y-5">
+            <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
               {product.images && product.images.length > 0 ? (
                 <>
                   <img
                     src={getImageUrl(product.images[selectedImageIndex])}
                     alt={getProductName()}
-                    className="w-full h-[350px] object-contain p-4"
+                    className="w-full h-[400px] md:h-[480px] object-contain p-6"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.style.display = "none";
@@ -642,22 +630,28 @@ const ProductDetails = () => {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-blue-600 p-3 rounded-full shadow-xl hover:shadow-2xl transition-all"
+                        aria-label="Previous image"
                       >
                         <FaChevronLeft />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-blue-600 p-3 rounded-full shadow-xl hover:shadow-2xl transition-all"
+                        aria-label="Next image"
                       >
                         <FaChevronRight />
                       </button>
                     </>
                   )}
                   {(hasDiscount || isFreeProduct) && (
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-5 left-5">
                       <div
-                        className={`text-white text-lg font-bold px-4 py-2 rounded-lg shadow-xl ${isFreeProduct ? "bg-gradient-to-r from-green-500 to-green-600" : "bg-gradient-to-r from-red-500 to-red-600"}`}
+                        className={`text-white text-lg font-bold px-4 py-2 rounded-lg shadow-xl ${
+                          isFreeProduct
+                            ? "bg-gradient-to-r from-green-500 to-green-600"
+                            : "bg-gradient-to-r from-red-500 to-red-600"
+                        }`}
                       >
                         {isFreeProduct
                           ? i18n.language === "sv"
@@ -669,7 +663,7 @@ const ProductDetails = () => {
                   )}
                 </>
               ) : (
-                <div className="w-full h-[400px] flex items-center justify-center bg-gray-100">
+                <div className="w-full h-[400px] md:h-[480px] flex items-center justify-center bg-gray-100">
                   <div className="text-center">
                     <FaTag className="text-6xl text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500">{t("product:noImages")}</p>
@@ -678,12 +672,17 @@ const ProductDetails = () => {
               )}
             </div>
             {product.images && product.images.length > 1 && (
-              <div className="flex space-x-3 overflow-x-auto py-2">
+              <div className="flex space-x-3 overflow-x-auto py-2 scrollbar-hide">
                 {product.images.map((image, index) => (
                   <button
                     key={image.id}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedImageIndex === index
+                        ? "border-blue-600 ring-2 ring-blue-100"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    aria-label={`Image ${index + 1}`}
                   >
                     <img
                       src={getImageUrl(image)}
@@ -703,13 +702,12 @@ const ProductDetails = () => {
           {/* قسم المعلومات الأساسية */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
                 {getProductName()}
               </h1>
 
-              {/* ✅ Article Number */}
               {product.artical && (
-                <p className="text-sm text-gray-500 mb-2">
+                <p className="text-sm text-gray-500 mb-3">
                   {t("common:article")}:{" "}
                   <span className="font-medium text-gray-700">
                     {product.artical}
@@ -717,25 +715,23 @@ const ProductDetails = () => {
                 </p>
               )}
 
-              <div className="flex items-center space-x-4 mb-4">
-                {/* <div className="flex items-center">
-                  {renderStars(product.product_rate)}
-                  <span className="ml-2 text-gray-600">
-                    {product.product_rate} ({t("product:rating")})
-                  </span>
-                </div> */}
-                {/* <span className="text-gray-400">|</span> */}
+              <div className="flex items-center space-x-4 mb-5">
                 <span className="text-gray-600">
-                  {t("product:category")}: {getCategoryName()}
+                  <span className="font-medium">{t("product:category")}:</span>{" "}
+                  {getCategoryName()}
                 </span>
               </div>
             </div>
 
             {/* السعر */}
             <div
-              className={`p-6 rounded-xl border ${isFreeProduct ? "bg-gradient-to-r from-green-50 to-white border-green-100" : "bg-gradient-to-r from-blue-50 to-white border-blue-100"}`}
+              className={`p-6 md:p-7 rounded-2xl border ${
+                isFreeProduct
+                  ? "bg-gradient-to-r from-green-50 to-white border-green-100"
+                  : "bg-gradient-to-r from-blue-50 to-white border-blue-100"
+              }`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center mb-3 flex-wrap gap-4">
                 {isFreeProduct ? (
                   <>
                     <div className="flex flex-col">
@@ -752,14 +748,14 @@ const ProductDetails = () => {
                           : "Limited Time Offer!"}
                       </span>
                     </div>
-                    <span className="ml-4 mt-2 sm:mt-0 bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full">
+                    <span className="bg-green-100 text-green-700 font-bold px-4 py-2 rounded-full">
                       {t("product:save")} {price.toFixed(2)}{" "}
                       <span className="text-sm">{CURRENCY_SYMBOL}</span>
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-4xl font-bold text-blue-600">
+                    <span className="text-4xl lg:text-5xl font-bold text-blue-600">
                       {displayPrice.toFixed(2)}{" "}
                       <span className="text-xl font-normal">
                         {CURRENCY_SYMBOL}
@@ -767,11 +763,11 @@ const ProductDetails = () => {
                     </span>
                     {hasDiscount && (
                       <>
-                        <span className="text-2xl line-through text-gray-400 ml-4">
+                        <span className="text-2xl line-through text-gray-400">
                           {price.toFixed(2)}{" "}
                           <span className="text-sm">{CURRENCY_SYMBOL}</span>
                         </span>
-                        <span className="ml-4 bg-red-100 text-red-600 font-bold px-3 py-1 rounded-full">
+                        <span className="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-full">
                           {t("product:save")}{" "}
                           {(price - discountPrice).toFixed(2)}{" "}
                           <span className="text-sm">{CURRENCY_SYMBOL}</span>
@@ -786,42 +782,48 @@ const ProductDetails = () => {
                 {product.tax_rate}%
                 {isFreeProduct && (
                   <span className="ml-4 text-green-600 font-medium">
-                    ✓ No tax on free items
+                    {t("product:noTaxOnFreeItems")}
                   </span>
                 )}
               </div>
             </div>
 
             {/* الكمية والإجراءات */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white p-6 md:p-7 rounded-2xl shadow-sm border border-gray-200">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-gray-700 font-medium mb-3">
                     {t("common:quantity")}
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={decreaseQuantity}
-                      disabled={quantity <= 1}
-                      className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50"
-                    >
-                      <span className="text-xl">−</span>
-                    </button>
-                    <input
-                      min="1"
-                      value={quantity}
-                      onChange={(e) =>
-                        setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                      }
-                      className="w-20 h-10 text-center border border-gray-300 rounded-lg"
-                    />
-                    <button
-                      onClick={increaseQuantity}
-                      className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg"
-                    >
-                      <span className="text-xl">+</span>
-                    </button>
-                    <span className="text-gray-600 ml-2">
+                  <div className="flex items-center space-x-3 flex-wrap gap-3">
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                      <button
+                        onClick={decreaseQuantity}
+                        disabled={quantity <= 1}
+                        className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Decrease quantity"
+                      >
+                        <span className="text-xl">−</span>
+                      </button>
+                      <input
+                        min="1"
+                        value={quantity}
+                        onChange={(e) =>
+                          setQuantity(
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
+                        }
+                        className="w-20 h-12 text-center border-x border-gray-300 focus:outline-none font-medium"
+                      />
+                      <button
+                        onClick={increaseQuantity}
+                        className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        <span className="text-xl">+</span>
+                      </button>
+                    </div>
+                    <span className="text-gray-600">
                       {quantity}{" "}
                       {quantity === 1 ? t("common:piece") : t("common:pieces")}
                     </span>
@@ -830,7 +832,13 @@ const ProductDetails = () => {
                 <button
                   onClick={() => handleAddToCart()}
                   disabled={addingToCart}
-                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg flex items-center justify-center ${addingToCart ? "bg-gray-400 cursor-not-allowed" : isFreeProduct ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white" : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"}`}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center ${
+                    addingToCart
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : isFreeProduct
+                        ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                        : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                  }`}
                 >
                   {addingToCart ? (
                     <>
@@ -860,19 +868,27 @@ const ProductDetails = () => {
         </div>
 
         {/* التبويبات */}
-        <div className="mt-12">
+        <div className="mt-14">
           <div className="border-b border-gray-200">
-            <nav className="flex flex-wrap gap-4">
+            <nav className="flex flex-wrap gap-6">
               <button
                 onClick={() => setActiveTab("description")}
-                className={`pb-3 px-2 font-medium transition-colors ${activeTab === "description" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+                className={`pb-4 px-1 font-medium transition-colors ${
+                  activeTab === "description"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-blue-600"
+                }`}
               >
                 {t("product:description")}
               </button>
               {hasAdditionalInfo && (
                 <button
                   onClick={() => setActiveTab("additional")}
-                  className={`pb-3 px-2 font-medium transition-colors ${activeTab === "additional" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+                  className={`pb-4 px-1 font-medium transition-colors ${
+                    activeTab === "additional"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-600 hover:text-blue-600"
+                  }`}
                 >
                   <FaInfoCircle className="inline mr-1" />{" "}
                   {t("product:additionalInfo")}
@@ -883,7 +899,11 @@ const ProductDetails = () => {
                 hasInfoMaterials) && (
                 <button
                   onClick={() => setActiveTab("files")}
-                  className={`pb-3 px-2 font-medium transition-colors ${activeTab === "files" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+                  className={`pb-4 px-1 font-medium transition-colors ${
+                    activeTab === "files"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-600 hover:text-blue-600"
+                  }`}
                 >
                   <FaFilePdf className="inline mr-1" /> {t("product:documents")}
                 </button>
@@ -891,9 +911,9 @@ const ProductDetails = () => {
             </nav>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-8">
             {activeTab === "description" && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="bg-white p-7 rounded-2xl shadow-sm border border-gray-200">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                   {getProductDescription()}
                 </p>
@@ -901,14 +921,14 @@ const ProductDetails = () => {
             )}
 
             {activeTab === "additional" && hasAdditionalInfo && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="space-y-4">
+              <div className="bg-white p-7 rounded-2xl shadow-sm border border-gray-200">
+                <div className="space-y-5">
                   {product.additonalinfo.map((info) => (
                     <div
                       key={info.id}
-                      className="pb-3 border-b border-gray-100 last:border-0"
+                      className="pb-4 border-b border-gray-100 last:border-0"
                     >
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">
+                      <h3 className="text-lg font-bold text-gray-800 mb-3">
                         {info.title}
                       </h3>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-line">
@@ -921,11 +941,11 @@ const ProductDetails = () => {
             )}
 
             {activeTab === "files" && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="space-y-6">
+              <div className="bg-white p-7 rounded-2xl shadow-sm border border-gray-200">
+                <div className="space-y-7">
                   {hasSafetySheets && (
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <FaShieldAlt className="mr-2 text-blue-600" />{" "}
                         {t("product:safetySheets")}
                       </h3>
@@ -938,7 +958,7 @@ const ProductDetails = () => {
                               href={fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                               <div className="flex items-center">
                                 <FaFilePdf className="text-red-500 mr-3" />
@@ -953,7 +973,7 @@ const ProductDetails = () => {
                   )}
                   {hasInstructionSheets && (
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <FaClipboardList className="mr-2 text-green-600" />{" "}
                         {t("product:instructionSheets")}
                       </h3>
@@ -966,7 +986,7 @@ const ProductDetails = () => {
                               href={fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                               <div className="flex items-center">
                                 <FaFilePdf className="text-red-500 mr-3" />
@@ -981,7 +1001,7 @@ const ProductDetails = () => {
                   )}
                   {hasInfoMaterials && (
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <FaBoxes className="mr-2 text-purple-600" />{" "}
                         {t("product:infoMaterials")}
                       </h3>
@@ -994,7 +1014,7 @@ const ProductDetails = () => {
                               href={fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                               <div className="flex items-center">
                                 <FaFilePdf className="text-red-500 mr-3" />
@@ -1013,11 +1033,10 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* ========== أقسام المنتجات المرتبطة مع أزرار التحريك ========== */}
-        {/* Related Products */}
+        {/* ========== أقسام المنتجات المرتبطة ========== */}
         {relatedProducts.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-14">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                 <FaLink className="mr-2 text-blue-500" />{" "}
                 {t("product:relatedProducts")}
@@ -1025,17 +1044,17 @@ const ProductDetails = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => scrollContainer("left", "related-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll left"
                 >
-                  <FaChevronLeft size={20} />
+                  <FaChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => scrollContainer("right", "related-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight size={20} />
+                  <FaChevronRight size={18} />
                 </button>
               </div>
             </div>
@@ -1057,8 +1076,8 @@ const ProductDetails = () => {
 
         {/* Accessory Products */}
         {accessoryProducts.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-14">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                 <FaCogs className="mr-2 text-green-500" />{" "}
                 {t("product:accessories")}
@@ -1066,17 +1085,17 @@ const ProductDetails = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => scrollContainer("left", "accessory-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll left"
                 >
-                  <FaChevronLeft size={20} />
+                  <FaChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => scrollContainer("right", "accessory-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight size={20} />
+                  <FaChevronRight size={18} />
                 </button>
               </div>
             </div>
@@ -1098,8 +1117,8 @@ const ProductDetails = () => {
 
         {/* Similar Products */}
         {similarProducts.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-14">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                 <FaRandom className="mr-2 text-purple-500" />{" "}
                 {t("product:similarProducts")}
@@ -1107,17 +1126,17 @@ const ProductDetails = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => scrollContainer("left", "similar-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll left"
                 >
-                  <FaChevronLeft size={20} />
+                  <FaChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => scrollContainer("right", "similar-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight size={20} />
+                  <FaChevronRight size={18} />
                 </button>
               </div>
             </div>
@@ -1139,8 +1158,8 @@ const ProductDetails = () => {
 
         {/* Variation Products */}
         {variationProducts.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-14">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                 <FaCopy className="mr-2 text-orange-500" />{" "}
                 {t("product:variations")}
@@ -1148,17 +1167,17 @@ const ProductDetails = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => scrollContainer("left", "variation-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll left"
                 >
-                  <FaChevronLeft size={20} />
+                  <FaChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => scrollContainer("right", "variation-scroll")}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+                  className="p-2.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-600 border border-gray-200 hover:border-blue-200 rounded-full transition-all shadow-sm"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight size={20} />
+                  <FaChevronRight size={18} />
                 </button>
               </div>
             </div>
@@ -1179,10 +1198,10 @@ const ProductDetails = () => {
         )}
 
         {/* زر العودة */}
-        <div className="mt-8 text-center">
+        <div className="mt-12 text-center">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            className="inline-flex items-center bg-gray-800 hover:bg-gray-900 text-white px-7 py-3.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
           >
             <FaChevronLeft className="mr-2" /> {t("product:backToAllProducts")}
           </button>

@@ -1,4 +1,4 @@
-// src/pages/Orders.jsx - صفحة طلبات المستخدم المعدلة (مع دعم عملة kr)
+// src/pages/Orders.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -152,11 +152,11 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* الهيدر */}
+      {/* ✅ Header مع container-max */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container-max py-7">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5 flex-wrap">
               <Link
                 to="/profile"
                 className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
@@ -166,7 +166,7 @@ const Orders = () => {
               </Link>
 
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                   {t("orders:myOrders")}
                 </h1>
                 <p className="text-gray-600 mt-1">
@@ -180,7 +180,7 @@ const Orders = () => {
             <div className="flex items-center gap-4">
               <button
                 onClick={fetchOrders}
-                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium px-4 py-2 rounded-lg hover:bg-blue-50"
                 title={t("common:refresh")}
               >
                 <FaRedo className="mr-2" />
@@ -191,8 +191,8 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8">
+      {/* ✅ المحتوى الرئيسي */}
+      <div className="container-max py-10">
         {error && orders.length === 0 ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
@@ -205,7 +205,7 @@ const Orders = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 to="/products"
-                className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
               >
                 <FaArrowLeft className="mr-2" />
                 {t("orders:startShopping")}
@@ -225,7 +225,7 @@ const Orders = () => {
             </p>
             <Link
               to="/products"
-              className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
             >
               <FaArrowLeft className="mr-2" />
               {t("orders:startShopping")}
@@ -234,24 +234,24 @@ const Orders = () => {
         ) : (
           <div className="space-y-8">
             {/* أدوات التصفية */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-7">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
                     {t("orders:filterOrders")}
                   </h3>
 
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-700">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-gray-700 font-medium">
                         {t("orders:filterBy")}:
                       </span>
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setFilterStatus("all")}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                             filterStatus === "all"
-                              ? "bg-blue-600 text-white"
+                              ? "bg-blue-600 text-white shadow-md"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
@@ -259,9 +259,9 @@ const Orders = () => {
                         </button>
                         <button
                           onClick={() => setFilterStatus("pending")}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                             filterStatus === "pending"
-                              ? "bg-yellow-600 text-white"
+                              ? "bg-yellow-600 text-white shadow-md"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
@@ -270,9 +270,9 @@ const Orders = () => {
                         </button>
                         <button
                           onClick={() => setFilterStatus("confirmed")}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                             filterStatus === "confirmed"
-                              ? "bg-green-600 text-white"
+                              ? "bg-green-600 text-white shadow-md"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
@@ -285,9 +285,9 @@ const Orders = () => {
                         </button>
                         <button
                           onClick={() => setFilterStatus("canceled")}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                             filterStatus === "canceled"
-                              ? "bg-red-600 text-white"
+                              ? "bg-red-600 text-white shadow-md"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
@@ -303,7 +303,7 @@ const Orders = () => {
                 {filterStatus !== "all" && (
                   <button
                     onClick={() => setFilterStatus("all")}
-                    className="inline-flex items-center text-red-600 hover:text-red-800 transition-colors whitespace-nowrap"
+                    className="inline-flex items-center text-red-600 hover:text-red-800 transition-colors whitespace-nowrap font-medium px-4 py-2 rounded-lg hover:bg-red-50"
                   >
                     <FaTimes className="mr-2" />
                     {t("orders:clearFilter")}
@@ -326,7 +326,7 @@ const Orders = () => {
                 </p>
                 <button
                   onClick={() => setFilterStatus("all")}
-                  className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
                 >
                   <FaTimes className="mr-2" />
                   {t("orders:showAllOrders")}
@@ -340,20 +340,20 @@ const Orders = () => {
                   return (
                     <div
                       key={order.id}
-                      className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
+                      className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300"
                     >
                       {/* هيدر الطلب */}
-                      <div className="bg-gradient-to-r from-blue-50 to-white px-6 py-4 border-b border-gray-200">
+                      <div className="bg-gradient-to-r from-blue-50 to-white px-6 md:px-7 py-5 border-b border-gray-200">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                               <FaShoppingBag className="text-blue-600 text-xl" />
                             </div>
                             <div>
                               <h3 className="font-bold text-gray-900 text-lg">
                                 {t("orders:order")} #{order.order_number}
                               </h3>
-                              <div className="flex items-center gap-3 mt-1">
+                              <div className="flex items-center gap-3 mt-1 flex-wrap">
                                 <div className="flex items-center text-gray-600 text-sm">
                                   <FaCalendarAlt className="mr-2" />
                                   {formatDate(
@@ -361,7 +361,7 @@ const Orders = () => {
                                   )}
                                 </div>
                                 <div
-                                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
                                 >
                                   {statusInfo.icon}
                                   <span>{statusInfo.text}</span>
@@ -371,7 +371,7 @@ const Orders = () => {
                           </div>
 
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-blue-600">
+                            <div className="text-2xl md:text-3xl font-bold text-blue-600">
                               {formatPrice(order.total_amount)}
                             </div>
                             <div className="text-sm text-gray-500">
@@ -382,11 +382,11 @@ const Orders = () => {
                       </div>
 
                       {/* تفاصيل الطلب */}
-                      <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="p-6 md:p-7">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                           {/* معلومات الطلب */}
                           <div>
-                            <h4 className="font-bold text-gray-800 mb-3">
+                            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">
                               {t("orders:orderDetails")}
                             </h4>
                             <div className="space-y-3">
@@ -422,7 +422,7 @@ const Orders = () => {
 
                           {/* ملخص المبلغ */}
                           <div>
-                            <h4 className="font-bold text-gray-800 mb-3">
+                            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">
                               {t("orders:amountSummary")}
                             </h4>
                             <div className="space-y-2">
@@ -450,11 +450,11 @@ const Orders = () => {
                                   {formatPrice(order.tax_amount)}
                                 </span>
                               </div>
-                              <div className="flex justify-between border-t border-gray-200 pt-2">
+                              <div className="flex justify-between border-t border-gray-200 pt-3 mt-3">
                                 <span className="font-bold text-gray-800">
                                   {t("orders:total")}:
                                 </span>
-                                <span className="font-bold text-blue-600">
+                                <span className="font-bold text-blue-600 text-lg">
                                   {formatPrice(order.total_amount)}
                                 </span>
                               </div>
@@ -463,7 +463,7 @@ const Orders = () => {
 
                           {/* معلومات إضافية */}
                           <div>
-                            <h4 className="font-bold text-gray-800 mb-3">
+                            <h4 className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">
                               {t("orders:additionalInfo")}
                             </h4>
                             <div className="space-y-3">
@@ -475,12 +475,12 @@ const Orders = () => {
                                   {order.user_name}
                                 </span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="flex justify-between items-center">
                                 <span className="text-gray-600">
                                   {t("orders:status")}:
                                 </span>
                                 <span
-                                  className={`font-medium px-2 py-1 rounded-full text-xs ${statusInfo.color}`}
+                                  className={`font-medium px-3 py-1 rounded-full text-xs ${statusInfo.color}`}
                                 >
                                   {statusInfo.text}
                                 </span>
@@ -497,40 +497,40 @@ const Orders = () => {
 
             {/* ملخص الإحصائيات */}
             {filterStatus === "all" && (
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-7">
+                <h3 className="text-lg font-bold text-gray-900 mb-5 pb-3 border-b border-gray-100">
                   {t("orders:orderStatistics")}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="text-center bg-blue-50 p-4 rounded-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+                  <div className="text-center bg-blue-50 p-6 rounded-xl border border-blue-100">
                     <div className="text-3xl font-bold text-blue-600 mb-2">
                       {orders.length}
                     </div>
-                    <div className="text-gray-700 font-medium">
+                    <div className="text-gray-700 font-medium text-sm">
                       {t("orders:totalOrders")}
                     </div>
                   </div>
 
-                  <div className="text-center bg-yellow-50 p-4 rounded-xl">
+                  <div className="text-center bg-yellow-50 p-6 rounded-xl border border-yellow-100">
                     <div className="text-3xl font-bold text-yellow-600 mb-2">
                       {orders.filter((o) => o.status === "pending").length}
                     </div>
-                    <div className="text-gray-700 font-medium">
+                    <div className="text-gray-700 font-medium text-sm">
                       {t("orders:pendingOrders")}
                     </div>
                   </div>
 
-                  <div className="text-center bg-green-50 p-4 rounded-xl">
+                  <div className="text-center bg-green-50 p-6 rounded-xl border border-green-100">
                     <div className="text-3xl font-bold text-green-600 mb-2">
                       {orders.filter((o) => o.status === "confirmed").length}
                     </div>
-                    <div className="text-gray-700 font-medium">
+                    <div className="text-gray-700 font-medium text-sm">
                       {t("orders:confirmedOrders")}
                     </div>
                   </div>
 
-                  <div className="text-center bg-purple-50 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">
+                  <div className="text-center bg-purple-50 p-6 rounded-xl border border-purple-100">
+                    <div className="text-2xl font-bold text-purple-600 mb-2">
                       {formatPrice(
                         orders.reduce(
                           (sum, order) => sum + parseFloat(order.total_amount),
@@ -538,7 +538,7 @@ const Orders = () => {
                         ),
                       )}
                     </div>
-                    <div className="text-gray-700 font-medium">
+                    <div className="text-gray-700 font-medium text-sm">
                       {t("orders:totalSpent")}
                     </div>
                   </div>

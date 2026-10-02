@@ -1,4 +1,4 @@
-// src/pages/Cart.jsx - صفحة السلة مع الشيك اوت (معدلة لدعم external_url وعملة kr)
+// src/pages/Cart.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,7 +48,7 @@ const Cart = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
+  // ✅ دالة لإنشاء رابط الصورة الكامل
   const getImageUrl = (image) => {
     if (!image) return null;
 
@@ -474,10 +474,11 @@ const Cart = () => {
         </div>
       )}
 
+      {/* ✅ Header مع container-max */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container-max py-7">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5 flex-wrap">
               <Link
                 to="/"
                 className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
@@ -487,7 +488,7 @@ const Cart = () => {
               </Link>
 
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                   {t("common:shoppingCart")}
                 </h1>
                 <p className="text-gray-600 mt-1">
@@ -497,7 +498,7 @@ const Cart = () => {
                       <span className="font-bold">
                         {cartData.order.order_number}
                       </span>{" "}
-                      •{cartData.order.number_of_items} {t("cart:items")}
+                      • {cartData.order.number_of_items} {t("cart:items")}
                     </>
                   ) : (
                     t("cart:emptyCart")
@@ -509,7 +510,7 @@ const Cart = () => {
             <div className="flex items-center gap-4">
               <Link
                 to="/products"
-                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors font-medium"
               >
                 <FaArrowRight className="mr-2" />
                 {t("cart:continueShopping")}
@@ -519,7 +520,8 @@ const Cart = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      {/* ✅ Main content مع container-max */}
+      <div className="container-max py-10">
         {error && !cartData ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
@@ -532,7 +534,7 @@ const Cart = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 to="/products"
-                className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
               >
                 <FaArrowRight className="mr-2" />
                 {t("cart:startShopping")}
@@ -559,7 +561,7 @@ const Cart = () => {
             </p>
             <Link
               to="/products"
-              className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
             >
               <FaArrowRight className="mr-2" />
               {t("cart:startShopping")}
@@ -569,11 +571,12 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
+                {/* Header السلة */}
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                        <FaShoppingCart className="text-white" />
+                      <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                        <FaShoppingCart className="text-white text-lg" />
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-white">
@@ -588,14 +591,16 @@ const Cart = () => {
                     </div>
                     <button
                       onClick={fetchCartData}
-                      className="inline-flex items-center text-white/80 hover:text-white transition-colors"
+                      className="inline-flex items-center text-white/80 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
                       title={t("common:refresh")}
+                      aria-label="Refresh"
                     >
                       <FaUndo />
                     </button>
                   </div>
                 </div>
 
+                {/* قائمة المنتجات */}
                 <div className="divide-y divide-gray-200">
                   {cartData?.related_products?.map((product) => {
                     const productName = getProductName(product);
@@ -629,13 +634,13 @@ const Cart = () => {
                         className="p-6 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex flex-col md:flex-row gap-6">
-                          <div className="md:w-32">
-                            <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                          <div className="md:w-36 flex-shrink-0">
+                            <div className="w-full h-36 bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
                               {productImageUrl ? (
                                 <img
                                   src={productImageUrl}
                                   alt={productName}
-                                  className="w-full h-full object-contain"
+                                  className="w-full h-full object-contain p-2"
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = "none";
@@ -673,16 +678,16 @@ const Cart = () => {
                                     {formatPrice(unitPrice)}
                                   </div>
                                   {hasDiscount && (
-                                    <div className="text-sm text-green-600">
+                                    <div className="text-sm text-green-600 font-medium">
                                       {t("cart:discountApplied")}: -
                                       {formatPrice(discountAmount)}
                                     </div>
                                   )}
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                  <div className="flex items-center">
-                                    <span className="text-gray-700 mr-3">
+                                <div className="flex items-center gap-4 flex-wrap">
+                                  <div className="flex items-center flex-wrap gap-3">
+                                    <span className="text-gray-700 font-medium">
                                       {t("common:quantity")}:
                                     </span>
                                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
@@ -691,7 +696,8 @@ const Cart = () => {
                                           handleQuantityChange(product.id, -1)
                                         }
                                         disabled={quantity <= 1 || isUpdating}
-                                        className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        aria-label="Decrease quantity"
                                       >
                                         <FaMinus className="text-gray-600" />
                                       </button>
@@ -701,7 +707,11 @@ const Cart = () => {
                                           <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
                                         ) : (
                                           <span
-                                            className={`font-medium ${hasUnsavedChanges ? "text-blue-600" : ""}`}
+                                            className={`font-medium ${
+                                              hasUnsavedChanges
+                                                ? "text-blue-600"
+                                                : ""
+                                            }`}
                                           >
                                             {quantity}
                                             {hasUnsavedChanges && (
@@ -718,7 +728,8 @@ const Cart = () => {
                                           handleQuantityChange(product.id, 1)
                                         }
                                         disabled={isUpdating}
-                                        className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        aria-label="Increase quantity"
                                       >
                                         <FaPlus className="text-gray-600" />
                                       </button>
@@ -727,14 +738,14 @@ const Cart = () => {
                                     {hasUnsavedChanges && !isUpdating && (
                                       <button
                                         onClick={() => saveQuantity(product.id)}
-                                        className="ml-3 px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg font-medium transition-colors"
+                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg font-medium transition-colors shadow-sm"
                                       >
                                         {t("common:save")}
                                       </button>
                                     )}
                                   </div>
 
-                                  <div className="text-lg font-bold text-blue-600">
+                                  <div className="text-lg font-bold text-blue-600 ml-auto md:ml-0">
                                     {formatPrice(subtotal)}
                                   </div>
                                 </div>
@@ -744,8 +755,9 @@ const Cart = () => {
                                 <button
                                   onClick={() => removeItem(product.id)}
                                   disabled={isUpdating}
-                                  className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-2"
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all p-2.5 rounded-lg"
                                   title={t("cart:removeItem")}
+                                  aria-label="Remove item"
                                 >
                                   <FaTrash />
                                 </button>
@@ -759,10 +771,11 @@ const Cart = () => {
                 </div>
               </div>
 
+              {/* ميزات إضافية */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-gray-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="flex items-center">
+                    <div className="w-11 h-11 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaTruck className="text-blue-600" />
                     </div>
                     <div>
@@ -776,25 +789,9 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* <div className="bg-white p-4 rounded-xl border border-gray-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <FaShieldAlt className="text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900">
-                        {t("cart:warranty")}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {t("cart:warrantyInfo")}
-                      </p>
-                    </div>
-                  </div>
-                </div> */}
-
-                <div className="bg-white p-4 rounded-xl border border-gray-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="flex items-center">
+                    <div className="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaUndo className="text-purple-600" />
                     </div>
                     <div>
@@ -810,10 +807,11 @@ const Cart = () => {
               </div>
             </div>
 
+            {/* Sidebar - Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 sticky top-8">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 sticky top-24">
                 <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 mb-5">
                     {t("cart:orderSummary")}
                   </h2>
 
@@ -918,7 +916,7 @@ const Cart = () => {
                 </div>
 
                 <div className="p-6 bg-gray-50 rounded-b-2xl">
-                  <h4 className="font-bold text-gray-900 mb-3">
+                  <h4 className="font-bold text-gray-900 mb-4">
                     {t("cart:orderDetails")}
                   </h4>
                   <div className="space-y-2 text-sm">

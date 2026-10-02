@@ -17,7 +17,8 @@ api.interceptors.request.use(
       config.headers["Content-Type"] = "application/json";
     }
 
-    const token = localStorage.getItem("authToken");
+    // ✅ استخدام customerToken بدلاً من authToken
+    const token = localStorage.getItem("customerToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,6 +41,11 @@ api.interceptors.response.use(
 
       if (status === 401) {
         console.error("Session expired");
+        // ✅ تنظيف التوكن المنتهي تلقائياً
+        localStorage.removeItem("customerToken");
+        localStorage.removeItem("customerData");
+        sessionStorage.removeItem("customerToken");
+        sessionStorage.removeItem("customerData");
       } else if (status === 403) {
         console.error("No permission");
       } else if (status === 404) {

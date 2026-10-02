@@ -1,16 +1,8 @@
-// src/components/layout/Footer.jsx - النسخة النهائية المبسطة
+// src/components/layout/Footer.jsx - النسخة المعدلة مع container-max
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  FaFacebook,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedin,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaEnvelope,
-} from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaPhone, FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
   const { t } = useTranslation(["footer", "navbar"]);
@@ -29,84 +21,79 @@ const Footer = () => {
       url: "https://www.facebook.com/profile.php?id=100074439486926",
       name: "Facebook",
     },
-    // {
-    //   icon: <FaTwitter />,
-    //   url: "https://twitter.com/dentalhub",
-    //   name: "Twitter",
-    // },
     {
       icon: <FaInstagram />,
       url: "https://instagram.com/dsndental",
       name: "Instagram",
     },
-    // {
-    //   icon: <FaLinkedin />,
-    //   url: "https://linkedin.com/company/dentalhub",
-    //   name: "LinkedIn",
-    // },
   ];
 
   return (
     <footer className="bg-gray-900 text-white">
       {/* المحتوى الرئيسي */}
-      <div className="py-8 md:py-10">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="py-12 md:py-16">
+        {/* ✅ container-max موحد */}
+        <div className="container-max">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
             {/* معلومات الشركة */}
-            <div className="space-y-4">
-              <h3 className="text-xl md:text-2xl font-bold text-white">
-                DentalHub
-              </h3>
-              <p className="text-gray-400 text-sm md:text-base">
+            <div className="space-y-5">
+              <h3 className="text-2xl font-bold text-white">DSN Dental</h3>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">
                 {t("footer:company_description")}
               </p>
 
               {/* معلومات الاتصال */}
-              <div className="space-y-3">
-                {/* <div className="flex items-start">
-                  <FaMapMarkerAlt className="mt-1 mr-3 text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-300 text-sm md:text-base">
-                    123 Medical Street, Dental City, DC 12345
-                  </span>
-                </div> */}
+              <div className="space-y-3 pt-2">
                 <div className="flex items-center">
                   <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-300 text-sm md:text-base">
+                  <a
+                    href="tel:0705496374"
+                    className="text-gray-300 text-sm md:text-base hover:text-white transition-colors"
+                  >
                     070-5496374
-                  </span>
+                  </a>
                 </div>
                 <div className="flex items-center">
                   <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-300 text-sm md:text-base">
+                  <a
+                    href="tel:0700944945"
+                    className="text-gray-300 text-sm md:text-base hover:text-white transition-colors"
+                  >
                     070-0944945
-                  </span>
+                  </a>
                 </div>
                 <div className="flex items-center">
                   <FaPhone className="mr-3 text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-300 text-sm md:text-base">
+                  <a
+                    href="tel:0700194136"
+                    className="text-gray-300 text-sm md:text-base hover:text-white transition-colors"
+                  >
                     070-0194136
-                  </span>
+                  </a>
                 </div>
                 <div className="flex items-center">
                   <FaEnvelope className="mr-3 text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-300 text-sm md:text-base">
+                  <a
+                    href="mailto:info@dsndental.se"
+                    className="text-gray-300 text-sm md:text-base hover:text-white transition-colors"
+                  >
                     info@dsndental.se
-                  </span>
+                  </a>
                 </div>
               </div>
             </div>
 
-            {/* روابط سريعة - نفس اللينكس بار */}
-            <div className="space-y-4">
-              <h4 className="text-lg md:text-xl font-semibold text-white">
+            {/* روابط سريعة */}
+            <div className="space-y-5">
+              <h4 className="text-xl font-semibold text-white">
                 {t("footer:quickLinks_title")}
               </h4>
-              <ul className="space-y-2 md:space-y-3">
+              <ul className="space-y-3">
                 {quickLinks.map((link, index) => (
                   <li key={index}>
                     <Link
                       to={link.path}
-                      className="text-gray-400 hover:text-white transition-colors text-sm md:text-base inline-block py-1"
+                      className="text-gray-400 hover:text-white text-sm md:text-base inline-block py-1 hover:translate-x-1 transform transition-[color,transform]"
                     >
                       {link.label}
                     </Link>
@@ -115,26 +102,26 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* وسائل التواصل الاجتماعي فقط */}
-            <div className="space-y-4">
-              <h4 className="text-lg md:text-xl font-semibold text-white">
+            {/* وسائل التواصل الاجتماعي */}
+            <div className="space-y-5">
+              <h4 className="text-xl font-semibold text-white">
                 {t("footer:social_title")}
               </h4>
-              <p className="text-gray-400 text-sm md:text-base">
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">
                 {t("footer:social_description")}
               </p>
 
-              <div className="flex space-x-3 md:space-x-4 pt-2">
+              <div className="flex space-x-4 pt-2">
                 {socialLinks.map((social, index) => (
                   <a
                     key={index}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-gray-800 hover:bg-blue-600 rounded-full transition-colors"
+                    className="w-11 h-11 flex items-center justify-center bg-gray-800 hover:bg-blue-600 rounded-full transition-all duration-300 hover:scale-110 shadow-lg"
                     aria-label={social.name}
                   >
-                    <span className="text-sm md:text-base">{social.icon}</span>
+                    <span className="text-lg">{social.icon}</span>
                   </a>
                 ))}
               </div>
@@ -143,23 +130,23 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* القسم السفلي - حقوق النشر فقط */}
-      <div className="border-t border-gray-800 py-4">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+      {/* القسم السفلي - حقوق النشر */}
+      <div className="border-t border-gray-800 py-5">
+        <div className="container-max">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* حقوق النشر */}
             <div className="text-center md:text-left">
               <div className="text-gray-400 text-xs md:text-sm">
-                © {new Date().getFullYear()} DentalHub. {t("footer:copyright")}
+                © {new Date().getFullYear()} DSN Dental. {t("footer:copyright")}
               </div>
             </div>
 
             {/* شهادات الأمان */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-3">
               <div className="text-gray-400 text-xs md:text-sm">
                 Secure Payment
               </div>
-              <div className="w-8 h-5 md:w-10 md:h-6 bg-green-500 rounded flex items-center justify-center">
+              <div className="w-10 h-6 bg-green-500 rounded flex items-center justify-center shadow">
                 <span className="text-white font-bold text-xs">SSL</span>
               </div>
             </div>

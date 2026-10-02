@@ -1,4 +1,4 @@
-// src/pages/Products.jsx - النسخة المعدلة مع دعم external_url وتحميل الفئات المتدرج وقص الاسم إلى 75 محرف وعملة kr
+// src/pages/Products.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -55,7 +55,7 @@ const Products = () => {
   const visibleCategories = categories.slice(0, visibleCategoriesCount);
   const hasMoreCategories = categories.length > visibleCategoriesCount;
 
-  // ✅ دالة لقص النص إلى عدد محدد من المحارف
+  // ✅ دالة لقص النص
   const truncateText = (text, maxLength = 75) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
@@ -76,7 +76,7 @@ const Products = () => {
     setVisibleCategoriesCount(CATEGORIES_INCREMENT);
   };
 
-  // ✅ دالة لإنشاء رابط الصورة الكامل (مع دعم external_url)
+  // ✅ دالة لإنشاء رابط الصورة الكامل
   const getImageUrl = (image) => {
     if (!image) return null;
 
@@ -119,7 +119,7 @@ const Products = () => {
     return null;
   };
 
-  // ✅ ========== جلب المنتجات حسب الفئة (باستخدام /categoryfilter) ==========
+  // ✅ جلب المنتجات حسب الفئة
   const fetchProductsByCategory = async (categoryId, isInitial = true) => {
     try {
       if (isInitial) {
@@ -155,7 +155,7 @@ const Products = () => {
     }
   };
 
-  // ========== جلب المنتجات العادية (باجينيشن) ==========
+  // ========== جلب المنتجات العادية ==========
   const fetchProducts = async () => {
     try {
       if (currentPage === 1) {
@@ -189,7 +189,7 @@ const Products = () => {
     }
   };
 
-  // ========== قراءة الفئة من الرابط وتطبيق الفلتر ==========
+  // ========== قراءة الفئة من الرابط ==========
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryId = params.get("category");
@@ -212,7 +212,6 @@ const Products = () => {
     try {
       const response = await api.get("/categories?from=shop");
       if (response.data && response.data.data) {
-        // ✅ فلترة الفئات النشطة فقط
         const activeCategories = response.data.data.filter(
           (cat) => cat.enabled === true,
         );
@@ -224,19 +223,19 @@ const Products = () => {
     }
   };
 
-  // ========== جلب الفئات عند تحميل الصفحة ==========
+  // ========== جلب الفئات عند التحميل ==========
   useEffect(() => {
     fetchCategoriesList();
   }, []);
 
-  // ========== إعادة ضبط عدد الفئات المعروضة عند إغلاق الفلتر ==========
+  // ========== إعادة ضبط عدد الفئات عند إغلاق الفلتر ==========
   useEffect(() => {
     if (!showFilter) {
       resetCategoriesVisibility();
     }
   }, [showFilter]);
 
-  // ========== مراقبة تغيير الصفحة (للباجينيشن فقط) ==========
+  // ========== مراقبة تغيير الصفحة ==========
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const hasCategoryParam = params.has("category");
@@ -251,8 +250,7 @@ const Products = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  // ========== مراقبة تغيير الفئات (للفلتر اليدوي من شريط الفلتر) ==========
-  // ✅ تم إزالة الشرط الذي كان يمنع الفلتر عند وجود category في الرابط
+  // ========== مراقبة تغيير الفئات ==========
   useEffect(() => {
     if (selectedCategories.length > 0) {
       filterProducts();
@@ -343,7 +341,7 @@ const Products = () => {
     }
   };
 
-  // ========== فلتر المنتجات (للفلتر اليدوي من شريط الفلتر) ==========
+  // ========== فلتر المنتجات ==========
   const filterProducts = async () => {
     try {
       setFilterLoading(true);
@@ -427,22 +425,6 @@ const Products = () => {
       discountPercentage: 0,
       isFree: false,
     };
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const renderStars = (rating) => {
-    const stars = [];
-    const ratingNum = parseFloat(rating) || 0;
-    const fullStars = Math.floor(ratingNum);
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<FaStar key={i} className="text-yellow-500" />);
-      } else {
-        stars.push(<FaStar key={i} className="text-gray-300" />);
-      }
-    }
-    return stars;
   };
 
   const toggleCategory = (categoryId) => {
@@ -534,13 +516,13 @@ const Products = () => {
 
       {/* الهيدر */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="container-max py-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {t("common:shop")}
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 mt-2">
                 {products.length} {t("common:productsFound")}
                 {selectedCategories.length > 0 && ` (${t("common:filtered")})`}
                 {selectedCategories.length === 0 &&
@@ -548,7 +530,7 @@ const Products = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {selectedCategories.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {selectedCategories.map((categoryId) => {
@@ -558,12 +540,13 @@ const Products = () => {
                     return category ? (
                       <div
                         key={categoryId}
-                        className="flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
+                        className="flex items-center bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium"
                       >
                         <span>{getCategoryName(category)}</span>
                         <button
                           onClick={() => removeCategory(categoryId)}
-                          className="ml-2 text-blue-500 hover:text-blue-700"
+                          className="ml-2 text-blue-500 hover:text-blue-800 transition-colors"
+                          aria-label="Remove filter"
                         >
                           <FaTimes size={12} />
                         </button>
@@ -575,7 +558,7 @@ const Products = () => {
 
               <button
                 onClick={() => setShowFilter(!showFilter)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg font-medium"
               >
                 <FaFilter />
                 {t("common:filter")}
@@ -591,20 +574,20 @@ const Products = () => {
       </div>
 
       {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container-max py-10">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* الشريط الجانبي للتصفية */}
           {showFilter && (
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 sticky top-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 sticky top-24">
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900">
                     {t("common:filterByCategory")}
                   </h2>
                   <button
                     onClick={clearFilters}
                     disabled={selectedCategories.length === 0}
-                    className={`text-sm ${
+                    className={`text-sm font-medium transition-colors ${
                       selectedCategories.length === 0
                         ? "text-gray-400 cursor-not-allowed"
                         : "text-blue-600 hover:text-blue-800"
@@ -642,7 +625,7 @@ const Products = () => {
                             id={`category-${category.id}`}
                             checked={selectedCategories.includes(category.id)}
                             onChange={() => toggleCategory(category.id)}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                           />
                           <label
                             htmlFor={`category-${category.id}`}
@@ -655,13 +638,12 @@ const Products = () => {
                       ))}
                     </div>
 
-                    {/* زر عرض المزيد من الفئات */}
                     {hasMoreCategories && (
                       <div className="mt-4">
                         <button
                           onClick={loadMoreCategories}
                           disabled={loadingMoreCategories}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                         >
                           {loadingMoreCategories ? (
                             <>
@@ -682,13 +664,18 @@ const Products = () => {
                 )}
 
                 <div className="mt-8 pt-6 border-t border-gray-200">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 space-y-1">
                     <p>
                       {t("common:selectedCategories")}:{" "}
-                      {selectedCategories.length}
+                      <span className="font-bold text-blue-600">
+                        {selectedCategories.length}
+                      </span>
                     </p>
-                    <p className="mt-2">
-                      {t("common:productsShowing")}: {products.length}
+                    <p>
+                      {t("common:productsShowing")}:{" "}
+                      <span className="font-bold text-blue-600">
+                        {products.length}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -751,16 +738,16 @@ const Products = () => {
                     return (
                       <div
                         key={product.id}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 group"
+                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 group flex flex-col"
                       >
                         {/* صورة المنتج */}
-                        <div className="relative h-48 bg-gray-100 overflow-hidden">
+                        <div className="relative h-52 bg-gray-100 overflow-hidden flex-shrink-0">
                           {productImageUrl ? (
                             <>
                               <img
                                 src={productImageUrl}
                                 alt={productName}
-                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-1"
+                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-2"
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.style.display = "none";
@@ -774,7 +761,7 @@ const Products = () => {
                                   parent.appendChild(fallback);
                                 }}
                               />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" />
                             </>
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200">
@@ -799,22 +786,14 @@ const Products = () => {
                                       : "FREE"
                                     : `-${priceInfo.discountPercentage}%`}
                                 </div>
-                                <div
-                                  className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 ${
-                                    priceInfo.isFree
-                                      ? "bg-green-600"
-                                      : "bg-red-600"
-                                  } rotate-45`}
-                                ></div>
                               </div>
                             </div>
                           )}
                         </div>
 
                         {/* معلومات المنتج */}
-                        <div className="p-4">
-                          {/* ✅ اسم المنتج مقصوص إلى 75 محرف مع إضافة title للـ hover */}
-                          <h3 className="font-bold text-gray-800 text-lg mb-1 hover:text-blue-600 transition-colors">
+                        <div className="p-4 flex flex-col flex-grow">
+                          <h3 className="font-bold text-gray-800 text-base mb-1 hover:text-blue-600 transition-colors line-clamp-2">
                             <Link
                               to={`/product/${product.id}`}
                               title={productName}
@@ -823,9 +802,8 @@ const Products = () => {
                             </Link>
                           </h3>
 
-                          {/* ✅ Article Number */}
                           {product.artical && (
-                            <p className="text-xs text-gray-500 mb-2">
+                            <p className="text-xs text-gray-500 mb-3">
                               {t("common:article")}:{" "}
                               <span className="font-medium">
                                 {product.artical}
@@ -833,84 +811,74 @@ const Products = () => {
                             </p>
                           )}
 
-                          {/* <div className="flex items-center mb-3">
-                            <div className="flex">
-                              {renderStars(product.product_rate)}
-                            </div>
-                            <span className="text-gray-500 text-sm ml-2">
-                              ({product.product_rate})
-                            </span>
-                          </div> */}
-
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center">
-                              {priceInfo.isFree ? (
-                                <div className="flex flex-col">
-                                  <span className="text-2xl font-bold text-green-600">
-                                    {i18n.language === "sv" ? "GRATIS" : "FREE"}
-                                  </span>
-                                  <span className="text-gray-400 line-through text-sm">
-                                    {priceInfo.originalPrice.toFixed(2)}{" "}
-                                    <span className="text-xs">
-                                      {CURRENCY_SYMBOL}
+                          <div className="mt-auto">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center flex-wrap gap-2">
+                                {priceInfo.isFree ? (
+                                  <div className="flex flex-col">
+                                    <span className="text-2xl font-bold text-green-600">
+                                      {i18n.language === "sv"
+                                        ? "GRATIS"
+                                        : "FREE"}
                                     </span>
-                                  </span>
-                                  <span className="text-xs text-green-500 font-medium mt-1">
-                                    {i18n.language === "sv"
-                                      ? "Begränsad erbjudande"
-                                      : "Limited Offer"}
-                                  </span>
-                                </div>
-                              ) : (
-                                <>
-                                  <span className="text-xl font-bold text-blue-600">
-                                    {priceInfo.displayPrice.toFixed(2)}{" "}
-                                    <span className="text-sm font-normal">
-                                      {CURRENCY_SYMBOL}
-                                    </span>
-                                  </span>
-                                  {priceInfo.hasDiscount &&
-                                    priceInfo.displayPrice > 0 && (
-                                      <span className="text-gray-400 line-through text-sm ml-2">
-                                        {priceInfo.originalPrice.toFixed(2)}{" "}
-                                        <span className="text-xs">
-                                          {CURRENCY_SYMBOL}
-                                        </span>
+                                    <span className="text-gray-400 line-through text-sm">
+                                      {priceInfo.originalPrice.toFixed(2)}{" "}
+                                      <span className="text-xs">
+                                        {CURRENCY_SYMBOL}
                                       </span>
-                                    )}
-                                </>
-                              )}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-xl font-bold text-blue-600">
+                                      {priceInfo.displayPrice.toFixed(2)}{" "}
+                                      <span className="text-sm font-normal">
+                                        {CURRENCY_SYMBOL}
+                                      </span>
+                                    </span>
+                                    {priceInfo.hasDiscount &&
+                                      priceInfo.displayPrice > 0 && (
+                                        <span className="text-gray-400 line-through text-sm">
+                                          {priceInfo.originalPrice.toFixed(2)}{" "}
+                                          <span className="text-xs">
+                                            {CURRENCY_SYMBOL}
+                                          </span>
+                                        </span>
+                                      )}
+                                  </>
+                                )}
+                              </div>
+                              <button
+                                onClick={() =>
+                                  handleAddToCart(product.id, productName)
+                                }
+                                disabled={isAdding}
+                                className={`transition-all p-2 rounded-lg ${
+                                  isAdding
+                                    ? "text-gray-400 cursor-not-allowed bg-gray-100"
+                                    : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                                }`}
+                                title={
+                                  isAdding
+                                    ? t("common:addingToCart")
+                                    : t("common:addToCart")
+                                }
+                              >
+                                {isAdding ? (
+                                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
+                                ) : (
+                                  <FaShoppingCart size={20} />
+                                )}
+                              </button>
                             </div>
-                            <button
-                              onClick={() =>
-                                handleAddToCart(product.id, productName)
-                              }
-                              disabled={isAdding}
-                              className={`transition-colors ${
-                                isAdding
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-gray-400 hover:text-blue-600"
-                              }`}
-                              title={
-                                isAdding
-                                  ? t("common:addingToCart")
-                                  : t("common:addToCart")
-                              }
-                            >
-                              {isAdding ? (
-                                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600"></div>
-                              ) : (
-                                <FaShoppingCart size={22} />
-                              )}
-                            </button>
-                          </div>
 
-                          <Link
-                            to={`/product/${product.id}`}
-                            className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 text-sm shadow-md hover:shadow-lg"
-                          >
-                            {t("common:viewDetails")}
-                          </Link>
+                            <Link
+                              to={`/product/${product.id}`}
+                              className="block w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-medium text-center transition-all duration-300 text-sm shadow-md hover:shadow-lg"
+                            >
+                              {t("common:viewDetails")}
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     );
@@ -919,22 +887,22 @@ const Products = () => {
 
                 {/* أزرار التنقل بين الصفحات */}
                 {selectedCategories.length === 0 && products.length > 0 && (
-                  <div className="mt-12 flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-4">
+                  <div className="mt-12 flex flex-col items-center gap-5">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={loadPreviousPage}
                         disabled={currentPage === 1 || loadingMore}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
                           currentPage === 1 || loadingMore
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-gray-800 hover:bg-gray-900 text-white"
+                            : "bg-gray-800 hover:bg-gray-900 text-white shadow-md hover:shadow-lg"
                         }`}
                       >
                         <FaChevronLeft />
                         {t("common:previousPage")}
                       </button>
 
-                      <div className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg">
+                      <div className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md">
                         {t("common:page")} {currentPage}
                         {!hasMorePages &&
                           currentPage > 1 &&
@@ -944,10 +912,10 @@ const Products = () => {
                       <button
                         onClick={loadNextPage}
                         disabled={!hasMorePages || loadingMore}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
                           !hasMorePages || loadingMore
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-gray-800 hover:bg-gray-900 text-white"
+                            : "bg-gray-800 hover:bg-gray-900 text-white shadow-md hover:shadow-lg"
                         }`}
                       >
                         {t("common:nextPage")}
@@ -989,6 +957,13 @@ const Products = () => {
 
         .animate-fade-in-down {
           animation: fadeInDown 0.3s ease-out;
+        }
+
+        .line-clamp-2 {
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
         }
       `}</style>
     </div>

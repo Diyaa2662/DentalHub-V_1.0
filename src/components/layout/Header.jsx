@@ -1,4 +1,4 @@
-// src/components/layout/Header.jsx - النسخة النهائية مع روابط الفئات إلى /products?category=ID
+// src/components/layout/Header.jsx - النسخة المعدلة مع container-max
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -232,15 +232,17 @@ const Header = () => {
       }`}
     >
       <nav className="bg-white border-b border-gray-200 w-full shadow-sm overflow-visible">
-        <div className="container mx-auto px-4 py-3">
+        {/* ✅ container-max موحد */}
+        <div className="container-max py-3.5">
           {/* الصف الرئيسي */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-6">
             {/* ========== القسم الأيسر: Logo + Language ========== */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {/* زر القائمة للهواتف */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden text-gray-700 hover:text-blue-600 focus:outline-none"
+                className="lg:hidden text-gray-700 hover:text-blue-600 focus:outline-none p-1"
+                aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
                   <FaTimes size={22} />
@@ -254,7 +256,7 @@ const Header = () => {
                 to="/"
                 className="text-xl md:text-2xl font-bold text-blue-700 whitespace-nowrap"
               >
-                DentalHub
+                DSN Dental
               </Link>
 
               {/* زر تغيير اللغة - مصغر */}
@@ -265,26 +267,32 @@ const Header = () => {
                       openDropdown === "language" ? null : "language",
                     )
                   }
-                  className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors text-xs border border-gray-300 rounded-full px-2 py-1 bg-gray-50"
+                  className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors text-xs border border-gray-300 rounded-full px-3 py-1.5 bg-gray-50"
                 >
                   <FaGlobe size={12} />
-                  <span>{i18n.language === "en" ? "EN" : "SV"}</span>
+                  <span className="font-medium">
+                    {i18n.language === "en" ? "EN" : "SV"}
+                  </span>
                   <FaChevronDown
                     size={8}
-                    className={`transition-transform ${openDropdown === "language" ? "rotate-180" : ""}`}
+                    className={`transition-transform ${
+                      openDropdown === "language" ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
                 {openDropdown === "language" && (
-                  <div className="absolute left-0 top-full mt-2 w-28 bg-white text-gray-800 rounded-lg shadow-xl py-2 z-50 border border-gray-200">
+                  <div className="absolute left-0 top-full mt-2 w-32 bg-white text-gray-800 rounded-lg shadow-xl py-2 z-50 border border-gray-200">
                     <button
                       onClick={() => {
                         i18n.changeLanguage("en");
                         localStorage.setItem("i18nextLng", "en");
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 ${
-                        i18n.language === "en" ? "bg-blue-50 text-blue-600" : ""
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                        i18n.language === "en"
+                          ? "bg-blue-50 text-blue-600 font-medium"
+                          : ""
                       }`}
                     >
                       English
@@ -295,8 +303,10 @@ const Header = () => {
                         localStorage.setItem("i18nextLng", "sv");
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 ${
-                        i18n.language === "sv" ? "bg-blue-50 text-blue-600" : ""
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                        i18n.language === "sv"
+                          ? "bg-blue-50 text-blue-600 font-medium"
+                          : ""
                       }`}
                     >
                       Svenska
@@ -307,12 +317,12 @@ const Header = () => {
             </div>
 
             {/* ========== القسم الأوسط: الروابط (Desktop فقط) ========== */}
-            <div className="hidden lg:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-8">
               <Link
                 to="/"
                 className={`font-medium transition-colors ${
                   isActive("/", true)
-                    ? "text-blue-600 border-b-2 border-blue-600"
+                    ? "text-blue-600 border-b-2 border-blue-600 pb-1"
                     : "text-gray-700 hover:text-blue-600"
                 }`}
               >
@@ -323,7 +333,7 @@ const Header = () => {
                 to="/products"
                 className={`font-medium transition-colors ${
                   isActive("/products", false)
-                    ? "text-blue-600 border-b-2 border-blue-600"
+                    ? "text-blue-600 border-b-2 border-blue-600 pb-1"
                     : "text-gray-700 hover:text-blue-600"
                 }`}
               >
@@ -338,7 +348,7 @@ const Header = () => {
                       openDropdown === "categories" ? null : "categories",
                     )
                   }
-                  className={`flex items-center gap-1 font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 font-medium transition-colors ${
                     openDropdown === "categories"
                       ? "text-blue-600"
                       : "text-gray-700 hover:text-blue-600"
@@ -347,13 +357,15 @@ const Header = () => {
                   {t("navbar:menu_categories")}
                   <FaChevronDown
                     size={12}
-                    className={`transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
+                    className={`transition-transform ${
+                      openDropdown === "categories" ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
                 {openDropdown === "categories" && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-screen max-w-screen-xl bg-white rounded-lg shadow-xl border border-gray-200 p-6 z-50">
-                    <div className="container mx-auto">
+                  <div className="fixed left-0 right-0 top-[60px] bg-white shadow-2xl border-t border-gray-200 z-40">
+                    <div className="container-max py-8">
                       {loadingCategories ? (
                         <div className="text-center py-8 text-gray-500">
                           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600 mx-auto mb-3"></div>
@@ -364,7 +376,7 @@ const Header = () => {
                           No categories found
                         </div>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
                           {categories.map((category) => (
                             <div key={category.id}>
                               {renderCategoryTreeForMegaMenu(category, 0)}
@@ -377,24 +389,22 @@ const Header = () => {
                 )}
               </div>
 
-              {/* About - مع تمييز الرابط النشط */}
               <Link
                 to="/about"
                 className={`font-medium transition-colors ${
                   isActive("/about", false)
-                    ? "text-blue-600 border-b-2 border-blue-600"
+                    ? "text-blue-600 border-b-2 border-blue-600 pb-1"
                     : "text-gray-700 hover:text-blue-600"
                 }`}
               >
                 {t("navbar:menu_about")}
               </Link>
 
-              {/* Contact - مع تمييز الرابط النشط */}
               <Link
                 to="/contact"
                 className={`font-medium transition-colors ${
                   isActive("/contact", false)
-                    ? "text-blue-600 border-b-2 border-blue-600"
+                    ? "text-blue-600 border-b-2 border-blue-600 pb-1"
                     : "text-gray-700 hover:text-blue-600"
                 }`}
               >
@@ -402,7 +412,7 @@ const Header = () => {
               </Link>
             </div>
 
-            {/* ========== القسم الأيمن: Profile + Cart + Search (Desktop) ========== */}
+            {/* ========== القسم الأيمن: Search + Cart + Profile (Desktop) ========== */}
             <div className="hidden lg:flex items-center gap-6">
               {/* Search */}
               {isSearchExpanded ? (
@@ -413,7 +423,7 @@ const Header = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("navbar:search_placeholder")}
-                    className="w-48 px-3 py-1.5 pl-8 pr-8 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-56 px-3 py-2 pl-9 pr-8 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all"
                     autoFocus
                   />
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
@@ -434,7 +444,8 @@ const Header = () => {
                     setIsSearchExpanded(true);
                     setTimeout(() => searchInputRef.current?.focus(), 100);
                   }}
-                  className="text-blue-700 hover:text-blue-500 transition-colors"
+                  className="text-blue-700 hover:text-blue-500 transition-colors p-1"
+                  aria-label="Search"
                 >
                   <FaSearch size={20} />
                 </button>
@@ -444,11 +455,12 @@ const Header = () => {
               <div className="relative group">
                 <button
                   onClick={handleCartClick}
-                  className="relative text-blue-700 hover:text-blue-500 transition-colors"
+                  className="relative text-blue-700 hover:text-blue-500 transition-colors p-1"
+                  aria-label="Cart"
                 >
                   <FaShoppingCart size={20} />
                   {!loadingCart && cartItemsCount > 0 && (
-                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {cartItemsCount > 99 ? "99+" : cartItemsCount}
                     </span>
                   )}
@@ -456,11 +468,11 @@ const Header = () => {
 
                 {/* Cart Dropdown on Hover */}
                 {cartProducts.length > 0 && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white text-gray-800 rounded-lg shadow-xl p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <h4 className="font-bold text-gray-900 text-sm mb-2">
+                  <div className="absolute right-0 top-full mt-3 w-80 bg-white text-gray-800 rounded-lg shadow-2xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100">
+                    <h4 className="font-bold text-gray-900 text-sm mb-3 pb-2 border-b border-gray-100">
                       {t("navbar:recent_items")} ({cartItemsCount})
                     </h4>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
                       {cartProducts.map((product) => {
                         const productName =
                           i18n.language === "sv" && product.s_name
@@ -474,14 +486,14 @@ const Header = () => {
                         return (
                           <div
                             key={product.id}
-                            className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded"
+                            className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded transition-colors"
                           >
-                            <div className="w-8 h-8 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                            <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                               {product.images?.[0] ? (
                                 <img
                                   src={
                                     product.images[0].url.startsWith("/")
-                                      ? `https://nethy.onrender.com${product.images[0].url}`
+                                      ? `https://back.dsndental.com${product.images[0].url}`
                                       : product.images[0].url
                                   }
                                   alt={productName}
@@ -496,7 +508,7 @@ const Header = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
                                 {productName}
                               </p>
@@ -504,15 +516,15 @@ const Header = () => {
                                 {quantity} × ${unitPrice.toFixed(2)}
                               </p>
                             </div>
-                            <div className="text-sm font-bold text-blue-600">
+                            <div className="text-sm font-bold text-blue-600 whitespace-nowrap">
                               ${((quantity || 1) * (unitPrice || 0)).toFixed(2)}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                    <div className="border-t border-gray-200 pt-2 mt-2">
-                      <div className="flex justify-between items-center mb-2">
+                    <div className="border-t border-gray-200 pt-3 mt-3">
+                      <div className="flex justify-between items-center mb-3">
                         <span className="text-sm font-medium">
                           {t("navbar:subtotal")}:
                         </span>
@@ -522,7 +534,7 @@ const Header = () => {
                       </div>
                       <Link
                         to="/cart"
-                        className="block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm"
+                        className="block w-full text-center bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
                       >
                         {t("navbar:cart_view")}
                       </Link>
@@ -535,7 +547,7 @@ const Header = () => {
               {isLoggedIn ? (
                 <Link
                   to="/profile"
-                  className="text-blue-700 hover:text-blue-500 transition-colors"
+                  className="text-blue-700 hover:text-blue-500 transition-colors p-1"
                   title={t("navbar:account")}
                 >
                   <FaUser size={20} />
@@ -543,7 +555,7 @@ const Header = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="text-blue-700 hover:text-blue-500 transition-colors"
+                  className="text-blue-700 hover:text-blue-500 transition-colors p-1"
                   title={t("navbar:login")}
                 >
                   <FaSignInAlt size={20} />
@@ -560,18 +572,20 @@ const Header = () => {
                     setTimeout(() => searchInputRef.current?.focus(), 100);
                   }
                 }}
-                className="text-blue-700 hover:text-blue-500"
+                className="text-blue-700 hover:text-blue-500 p-1"
+                aria-label="Search"
               >
                 <FaSearch size={18} />
               </button>
 
               <button
                 onClick={handleCartClick}
-                className="relative text-blue-700 hover:text-blue-500"
+                className="relative text-blue-700 hover:text-blue-500 p-1"
+                aria-label="Cart"
               >
                 <FaShoppingCart size={18} />
                 {!loadingCart && cartItemsCount > 0 && (
-                  <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
                     {cartItemsCount > 99 ? "99+" : cartItemsCount}
                   </span>
                 )}
@@ -580,12 +594,17 @@ const Header = () => {
               {isLoggedIn ? (
                 <Link
                   to="/profile"
-                  className="text-blue-700 hover:text-blue-500"
+                  className="text-blue-700 hover:text-blue-500 p-1"
+                  aria-label="Profile"
                 >
                   <FaUser size={18} />
                 </Link>
               ) : (
-                <Link to="/login" className="text-blue-700 hover:text-blue-500">
+                <Link
+                  to="/login"
+                  className="text-blue-700 hover:text-blue-500 p-1"
+                  aria-label="Login"
+                >
                   <FaSignInAlt size={18} />
                 </Link>
               )}
@@ -602,7 +621,7 @@ const Header = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t("navbar:search_placeholder")}
-                  className="w-full px-4 py-2 pl-10 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 pl-10 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoFocus
                 />
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -619,18 +638,18 @@ const Header = () => {
 
           {/* ========== Mobile Menu ========== */}
           {isMobileMenuOpen && (
-            <div className="mt-4 lg:hidden animate-slideDown bg-white border-t border-gray-100 pt-3">
-              <div className="flex flex-col space-y-3 pb-3">
+            <div className="mt-4 lg:hidden animate-slideDown bg-white border-t border-gray-100 pt-4">
+              <div className="flex flex-col space-y-3 pb-4">
                 <Link
                   to="/"
-                  className="text-gray-700 hover:text-blue-600 py-2"
+                  className="text-gray-700 hover:text-blue-600 py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("navbar:menu_home")}
                 </Link>
                 <Link
                   to="/products"
-                  className="text-gray-700 hover:text-blue-600 py-2"
+                  className="text-gray-700 hover:text-blue-600 py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("navbar:menu_shop")}
@@ -646,16 +665,18 @@ const Header = () => {
                           : "mobile-categories",
                       )
                     }
-                    className="flex items-center justify-between w-full text-gray-700 hover:text-blue-600 py-2"
+                    className="flex items-center justify-between w-full text-gray-700 hover:text-blue-600 py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   >
                     <span>{t("navbar:menu_categories")}</span>
                     <FaChevronDown
                       size={12}
-                      className={`transition-transform ${openDropdown === "mobile-categories" ? "rotate-180" : ""}`}
+                      className={`transition-transform ${
+                        openDropdown === "mobile-categories" ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
                   {openDropdown === "mobile-categories" && (
-                    <div className="pl-4 mt-2 space-y-3 border-l-2 border-gray-200 ml-2">
+                    <div className="pl-4 mt-2 space-y-3 border-l-2 border-gray-200 ml-3">
                       {loadingCategories ? (
                         <div className="text-gray-500 text-sm py-2 text-center">
                           <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-blue-600 mx-auto mb-2"></div>
@@ -670,7 +691,7 @@ const Header = () => {
                           <div key={category.id}>
                             <Link
                               to={`/products?category=${category.id}`}
-                              className="block font-medium text-gray-800 hover:text-blue-600 py-1"
+                              className="block font-medium text-gray-800 hover:text-blue-600 py-1.5"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               {i18n.language === "sv" && category.s_name
@@ -728,14 +749,14 @@ const Header = () => {
 
                 <Link
                   to="/about"
-                  className="text-gray-700 hover:text-blue-600 py-2"
+                  className="text-gray-700 hover:text-blue-600 py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("navbar:menu_about")}
                 </Link>
                 <Link
                   to="/contact"
-                  className="text-gray-700 hover:text-blue-600 py-2"
+                  className="text-gray-700 hover:text-blue-600 py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("navbar:menu_contact")}

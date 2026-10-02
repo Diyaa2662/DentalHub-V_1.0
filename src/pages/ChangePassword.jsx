@@ -1,4 +1,4 @@
-// src/pages/ChangePassword.jsx
+// src/pages/ChangePassword.jsx - النسخة المعدلة مع container-max
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -67,7 +67,7 @@ const ChangePassword = () => {
       checkPasswordStrength(value);
     }
 
-    // تحقق من مطابقة كلمات السر إذا كان أحد حقلين كلمة السر الجديدة
+    // تحقق من مطابقة كلمات السر
     if (name === "newPassword" || name === "confirmPassword") {
       if (formData.newPassword && formData.confirmPassword) {
         // eslint-disable-next-line no-unused-vars
@@ -91,7 +91,6 @@ const ChangePassword = () => {
 
     setPasswordRequirements(requirements);
 
-    // حساب قوة كلمة السر (0-5)
     const strength = Object.values(requirements).filter(Boolean).length;
     setPasswordStrength(strength);
   };
@@ -113,7 +112,6 @@ const ChangePassword = () => {
   };
 
   const validateForm = () => {
-    // التحقق من البريد الإلكتروني
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email || !emailRegex.test(formData.email)) {
       setError(t("profile:validEmailRequired"));
@@ -147,7 +145,6 @@ const ChangePassword = () => {
     return true;
   };
 
-  // في ملف src/pages/ChangePassword.jsx - تحديث جزء handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -166,14 +163,13 @@ const ChangePassword = () => {
     setSuccess("");
 
     try {
-      // هنا التعديل المهم: أسماء الحقول يجب أن تكون كما في API
       const response = await api.post(
         "/resetpassword",
         {
           email: formData.email,
-          current_password: formData.currentPassword, // current_password (ليس currentPassword)
-          new_password: formData.newPassword, // new_password (ليس newPassword)
-          new_password_confirmation: formData.confirmPassword, // new_password_confirmation (ليس confirmPassword)
+          current_password: formData.currentPassword,
+          new_password: formData.newPassword,
+          new_password_confirmation: formData.confirmPassword,
         },
         {
           headers: {
@@ -186,7 +182,6 @@ const ChangePassword = () => {
       if (response.data && response.data.message) {
         setSuccess(response.data.message || t("profile:passwordChangeSuccess"));
 
-        // إعادة تعيين النموذج
         setFormData({
           email: formData.email,
           currentPassword: "",
@@ -194,7 +189,6 @@ const ChangePassword = () => {
           confirmPassword: "",
         });
 
-        // إخفاء رسالة النجاح بعد 5 ثواني
         setTimeout(() => {
           setSuccess("");
           navigate("/profile");
@@ -224,9 +218,10 @@ const ChangePassword = () => {
       setLoading(false);
     }
   };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 py-10 md:py-12">
+      <div className="container-max">
         {/* زر العودة */}
         <div className="mb-8">
           <Link
@@ -241,7 +236,7 @@ const ChangePassword = () => {
         <div className="max-w-2xl mx-auto">
           {/* الهيدر */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mb-5 shadow-xl">
               <FaLock className="text-white text-3xl" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -253,12 +248,12 @@ const ChangePassword = () => {
           </div>
 
           {/* النموذج */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 md:p-8">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-7 md:p-9">
             {/* رسائل الحالة */}
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-center">
-                  <FaTimes className="text-red-500 mr-3" />
+                  <FaTimes className="text-red-500 mr-3 flex-shrink-0" />
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               </div>
@@ -267,7 +262,7 @@ const ChangePassword = () => {
             {success && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center">
-                  <FaCheck className="text-green-500 mr-3" />
+                  <FaCheck className="text-green-500 mr-3 flex-shrink-0" />
                   <p className="text-sm text-green-700">{success}</p>
                 </div>
               </div>
@@ -287,10 +282,10 @@ const ChangePassword = () => {
                     onChange={handleChange}
                     required
                     disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                    className="w-full px-4 py-3.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                     placeholder={t("profile:enterYourEmail")}
                   />
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
                     <FaShieldAlt className="text-gray-400" />
                   </div>
                 </div>
@@ -311,18 +306,19 @@ const ChangePassword = () => {
                     value={formData.currentPassword}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder={t("profile:enterCurrentPassword")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                    aria-label="Toggle password visibility"
                   >
                     {showCurrentPassword ? (
-                      <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
+                      <FaEyeSlash className="text-gray-400 hover:text-gray-600 transition-colors" />
                     ) : (
-                      <FaEye className="text-gray-400 hover:text-gray-600" />
+                      <FaEye className="text-gray-400 hover:text-gray-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -340,18 +336,19 @@ const ChangePassword = () => {
                     value={formData.newPassword}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder={t("profile:enterNewPassword")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                    aria-label="Toggle password visibility"
                   >
                     {showNewPassword ? (
-                      <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
+                      <FaEyeSlash className="text-gray-400 hover:text-gray-600 transition-colors" />
                     ) : (
-                      <FaEye className="text-gray-400 hover:text-gray-600" />
+                      <FaEye className="text-gray-400 hover:text-gray-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -359,7 +356,7 @@ const ChangePassword = () => {
                 {/* شريط قوة كلمة السر */}
                 {formData.newPassword && (
                   <div className="mt-3">
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-center mb-1.5">
                       <span className="text-sm font-medium text-gray-700">
                         {t("profile:passwordStrength")}:
                       </span>
@@ -394,60 +391,80 @@ const ChangePassword = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div className="flex items-center">
                       {passwordRequirements.length ? (
-                        <FaCheck className="text-green-500 mr-2" />
+                        <FaCheck className="text-green-500 mr-2 flex-shrink-0" />
                       ) : (
-                        <FaTimes className="text-red-500 mr-2" />
+                        <FaTimes className="text-red-500 mr-2 flex-shrink-0" />
                       )}
                       <span
-                        className={`text-sm ${passwordRequirements.length ? "text-green-600" : "text-gray-600"}`}
+                        className={`text-sm ${
+                          passwordRequirements.length
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
                       >
                         {t("profile:min8Characters")}
                       </span>
                     </div>
                     <div className="flex items-center">
                       {passwordRequirements.uppercase ? (
-                        <FaCheck className="text-green-500 mr-2" />
+                        <FaCheck className="text-green-500 mr-2 flex-shrink-0" />
                       ) : (
-                        <FaTimes className="text-red-500 mr-2" />
+                        <FaTimes className="text-red-500 mr-2 flex-shrink-0" />
                       )}
                       <span
-                        className={`text-sm ${passwordRequirements.uppercase ? "text-green-600" : "text-gray-600"}`}
+                        className={`text-sm ${
+                          passwordRequirements.uppercase
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
                       >
                         {t("profile:uppercaseLetter")}
                       </span>
                     </div>
                     <div className="flex items-center">
                       {passwordRequirements.lowercase ? (
-                        <FaCheck className="text-green-500 mr-2" />
+                        <FaCheck className="text-green-500 mr-2 flex-shrink-0" />
                       ) : (
-                        <FaTimes className="text-red-500 mr-2" />
+                        <FaTimes className="text-red-500 mr-2 flex-shrink-0" />
                       )}
                       <span
-                        className={`text-sm ${passwordRequirements.lowercase ? "text-green-600" : "text-gray-600"}`}
+                        className={`text-sm ${
+                          passwordRequirements.lowercase
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
                       >
                         {t("profile:lowercaseLetter")}
                       </span>
                     </div>
                     <div className="flex items-center">
                       {passwordRequirements.number ? (
-                        <FaCheck className="text-green-500 mr-2" />
+                        <FaCheck className="text-green-500 mr-2 flex-shrink-0" />
                       ) : (
-                        <FaTimes className="text-red-500 mr-2" />
+                        <FaTimes className="text-red-500 mr-2 flex-shrink-0" />
                       )}
                       <span
-                        className={`text-sm ${passwordRequirements.number ? "text-green-600" : "text-gray-600"}`}
+                        className={`text-sm ${
+                          passwordRequirements.number
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
                       >
                         {t("profile:oneNumber")}
                       </span>
                     </div>
                     <div className="flex items-center">
                       {passwordRequirements.special ? (
-                        <FaCheck className="text-green-500 mr-2" />
+                        <FaCheck className="text-green-500 mr-2 flex-shrink-0" />
                       ) : (
-                        <FaTimes className="text-red-500 mr-2" />
+                        <FaTimes className="text-red-500 mr-2 flex-shrink-0" />
                       )}
                       <span
-                        className={`text-sm ${passwordRequirements.special ? "text-green-600" : "text-gray-600"}`}
+                        className={`text-sm ${
+                          passwordRequirements.special
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
                       >
                         {t("profile:specialCharacter")}
                       </span>
@@ -468,28 +485,29 @@ const ChangePassword = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    className={`w-full px-4 py-3.5 pr-12 border rounded-lg focus:ring-2 transition-colors ${
                       formData.newPassword &&
                       formData.confirmPassword &&
                       formData.newPassword !== formData.confirmPassword
-                        ? "border-red-300 focus:border-red-500"
+                        ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                         : formData.newPassword &&
                             formData.confirmPassword &&
                             formData.newPassword === formData.confirmPassword
-                          ? "border-green-300 focus:border-green-500"
-                          : "border-gray-300 focus:border-blue-500"
+                          ? "border-green-300 focus:ring-green-500 focus:border-green-500"
+                          : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                     }`}
                     placeholder={t("profile:confirmNewPassword")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                    aria-label="Toggle password visibility"
                   >
                     {showConfirmPassword ? (
-                      <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
+                      <FaEyeSlash className="text-gray-400 hover:text-gray-600 transition-colors" />
                     ) : (
-                      <FaEye className="text-gray-400 hover:text-gray-600" />
+                      <FaEye className="text-gray-400 hover:text-gray-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -507,14 +525,14 @@ const ChangePassword = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link
                   to="/profile"
-                  className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center px-6 py-3.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                 >
                   {t("common:cancel")}
                 </Link>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex-1 inline-flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium"
                 >
                   {loading ? (
                     <>
@@ -532,12 +550,12 @@ const ChangePassword = () => {
 
               {/* نص تذكيري */}
               <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-bold text-gray-900 mb-2 flex items-center">
+                <div className="bg-blue-50 p-5 rounded-lg border border-blue-100">
+                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
                     <FaShieldAlt className="mr-2 text-blue-600" />
                     {t("profile:securityTips")}
                   </h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                  <ul className="text-sm text-gray-600 space-y-1.5">
                     <li>• {t("profile:tipUniquePassword")}</li>
                     <li>• {t("profile:tipChangeRegularly")}</li>
                     <li>• {t("profile:tipNoPersonalInfo")}</li>

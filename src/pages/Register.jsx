@@ -1,4 +1,4 @@
-// src/pages/Register.jsx - صفحة إنشاء حساب جديد
+// src/pages/Register.jsx - النسخة المعدلة مع container-max
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -47,7 +47,6 @@ const Register = () => {
       [name]: value,
     }));
 
-    // تحقق من قوة كلمة المرور
     if (name === "password") {
       calculatePasswordStrength(value);
     }
@@ -56,16 +55,9 @@ const Register = () => {
   const calculatePasswordStrength = (password) => {
     let strength = 0;
 
-    // طول كلمة المرور
     if (password.length >= 8) strength += 25;
-
-    // يحتوي على حروف كبيرة
     if (/[A-Z]/.test(password)) strength += 25;
-
-    // يحتوي على أرقام
     if (/[0-9]/.test(password)) strength += 25;
-
-    // يحتوي على رموز خاصة
     if (/[^A-Za-z0-9]/.test(password)) strength += 25;
 
     setPasswordStrength(strength);
@@ -119,8 +111,6 @@ const Register = () => {
     return true;
   };
 
-  // src/pages/Register.jsx - التعديلات المطلوبة في handleSubmit
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -134,11 +124,9 @@ const Register = () => {
     try {
       const response = await api.post("/register", formData);
 
-      // التعديل: فقط نتحقق من أن الاستجابة تحتوي على رسالة نجاح
       if (response.data && response.data.message) {
         setSuccess(true);
 
-        // تنظيف النموذج بعد النجاح (اختياري)
         setFormData({
           name: "",
           email: "",
@@ -148,7 +136,6 @@ const Register = () => {
           address: "",
         });
 
-        // توجيه المستخدم لصفحة تسجيل الدخول بعد 3 ثواني
         setTimeout(() => {
           navigate("/login", {
             state: {
@@ -186,8 +173,8 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
-      {/* زر العودة */}
-      <div className="container mx-auto px-4 pt-6">
+      {/* ✅ زر العودة مع container-max */}
+      <div className="container-max pt-6">
         <Link
           to="/"
           className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
@@ -197,8 +184,8 @@ const Register = () => {
         </Link>
       </div>
 
-      {/* المحتوى الرئيسي */}
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+      {/* ✅ المحتوى الرئيسي */}
+      <div className="container-max py-8 flex items-center justify-center">
         <div className="w-full max-w-4xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* قسم الصورة والمعلومات */}
@@ -219,7 +206,7 @@ const Register = () => {
                 {/* مزايا التسجيل */}
                 <div className="space-y-6">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaShoppingCart className="text-white" />
                     </div>
                     <div>
@@ -233,7 +220,7 @@ const Register = () => {
                   </div>
 
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaHeart className="text-white" />
                     </div>
                     <div>
@@ -247,7 +234,7 @@ const Register = () => {
                   </div>
 
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <FaShieldAlt className="text-white" />
                     </div>
                     <div>
@@ -289,7 +276,7 @@ const Register = () => {
 
             {/* قسم التسجيل */}
             <div>
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-7 md:p-8">
                 {/* الهيدر */}
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
@@ -347,7 +334,7 @@ const Register = () => {
 
                 {/* النموذج */}
                 {!success && (
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     {/* الاسم الكامل */}
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">
@@ -363,7 +350,7 @@ const Register = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:namePlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -387,7 +374,7 @@ const Register = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:emailPlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -396,7 +383,7 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* رقم الهاتف (اختياري) */}
+                    {/* رقم الهاتف */}
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">
                         <div className="flex items-center">
@@ -413,7 +400,7 @@ const Register = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:phonePlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -422,7 +409,7 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* العنوان (اختياري) */}
+                    {/* العنوان */}
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">
                         <div className="flex items-center">
@@ -439,7 +426,7 @@ const Register = () => {
                           name="address"
                           value={formData.address}
                           onChange={handleChange}
-                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:addressPlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -463,7 +450,7 @@ const Register = () => {
                           value={formData.password}
                           onChange={handleChange}
                           required
-                          className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:passwordPlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -472,7 +459,8 @@ const Register = () => {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          aria-label="Toggle password visibility"
                         >
                           {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
@@ -480,8 +468,8 @@ const Register = () => {
 
                       {/* مؤشر قوة كلمة المرور */}
                       {formData.password && (
-                        <div className="mt-2">
-                          <div className="flex justify-between text-xs text-gray-600 mb-1">
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-gray-600 mb-1.5">
                             <span>{t("auth:passwordStrength")}:</span>
                             <span
                               className={`font-medium ${
@@ -503,7 +491,7 @@ const Register = () => {
                               style={{ width: `${passwordStrength}%` }}
                             ></div>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-1.5">
                             {t("auth:passwordRequirements")}
                           </p>
                         </div>
@@ -525,7 +513,7 @@ const Register = () => {
                           value={formData.password_confirmation}
                           onChange={handleChange}
                           required
-                          className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           placeholder={t("auth:confirmPasswordPlaceholder")}
                         />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -536,7 +524,8 @@ const Register = () => {
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
                           }
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          aria-label="Toggle password visibility"
                         >
                           {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
@@ -544,7 +533,7 @@ const Register = () => {
 
                       {/* التحقق من مطابقة كلمة المرور */}
                       {formData.password_confirmation && (
-                        <div className="mt-1">
+                        <div className="mt-2">
                           {formData.password ===
                           formData.password_confirmation ? (
                             <p className="text-xs text-green-600 flex items-center">
@@ -591,7 +580,7 @@ const Register = () => {
                     {t("auth:alreadyHaveAccount")}{" "}
                     <Link
                       to="/login"
-                      className="text-green-600 hover:text-green-800 font-bold"
+                      className="text-green-600 hover:text-green-800 font-bold transition-colors"
                     >
                       {t("auth:signIn")}
                     </Link>
@@ -630,12 +619,12 @@ const Register = () => {
         </div>
       </div>
 
-      {/* قسم الأمان */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center mb-4 md:mb-0">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+      {/* ✅ قسم الأمان */}
+      <div className="container-max py-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-7">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                 <FaShieldAlt className="text-green-600 text-xl" />
               </div>
               <div>
@@ -647,7 +636,7 @@ const Register = () => {
                 </p>
               </div>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">256-bit</div>
                 <div className="text-xs text-gray-500">
