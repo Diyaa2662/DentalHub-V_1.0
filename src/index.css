@@ -35,7 +35,7 @@
 
   /* ✅ Container بعرض محدود للمحتوى */
   .container-max {
-    @apply mx-auto px-4 sm:px-6 lg:px-8 xl:px-12;
+    @apply mx-auto px-4 sm:px-6 lg:px-8 xl:px-8;
     max-width: 1440px;
   }
 
